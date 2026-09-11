@@ -1,0 +1,73 @@
+/**
+ * Boot gate. Shows the brand mark while the stored Supabase session is read,
+ * then hands off to the sign-in flow or the tab shell. Deep links still land on
+ * their target route — the group layouts do their own guarding.
+ */
+import { BRAND } from '@pharmago/shared';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Redirect } from 'expo-router';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useSession } from '@/src/state/SessionProvider';
+
+export default function Boot() {
+  const { status } = useSession();
+
+  if (status === 'signed_in') return <Redirect href="/(app)/(tabs)" />;
+  if (status === 'signed_out') return <Redirect href="/(auth)/welcome" />;
+
+  return (
+    <LinearGradient
+      colors={['#FFFFFF', '#EEF3FF']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.root}
+    >
+      <Animated.View entering={FadeIn.duration(400)} style={styles.center}>
+        <Image
+          source={require('../assets/images/logo.png')}
+          style={styles.logo}
+          contentFit="contain"
+          transition={200}
+        />
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>Staff</Text>
+        </View>
+      </Animated.View>
+      <Animated.View entering={FadeInDown.delay(260).duration(420)} style={styles.footer}>
+        <ActivityIndicator color={BRAND.blue} />
+        <Text style={styles.tagline}>Pharmacy counter</Text>
+      </Animated.View>
+    </LinearGradient>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { alignItems: 'center' },
+  logo: { width: 190, height: 190 },
+  /** The one thing that tells the two yahadeen apps apart on a shared device. */
+  badge: {
+    marginTop: -8,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: BRAND.blue,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: '#FFFFFF',
+  },
+  footer: { position: 'absolute', bottom: 72, alignItems: 'center', gap: 14 },
+  tagline: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: BRAND.blue,
+  },
+});

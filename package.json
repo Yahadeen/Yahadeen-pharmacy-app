@@ -1,0 +1,19 @@
+{
+  "name": "yahadeen",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "dev:admin": "pnpm --filter admin-app dev",
+    "dev:customer": "pnpm --filter customer-app start",
+    "dev:attendant": "pnpm --filter attendant-app start",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^1.13.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

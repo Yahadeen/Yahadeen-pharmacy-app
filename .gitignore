@@ -1,0 +1,104 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Build output
+.next/
+out/
+dist/
+.turbo/
+.expo/
+web-build/
+expo-env.d.ts
+build/
+
+# Environment variables - NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Supabase local files
+supabase/.branches/
+supabase/.temp/
+
+# Mobile app specific
+ios/
+android/
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+eas-build-metadata.json
+
+# Expo
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Misc
+.cache/
+.parcel-cache/
+.temp/
+.tmp/
+
+# Lockfiles from other package managers (this repo is pnpm)
+package-lock.json
+yarn.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Database
+*.sql.gz
+*.db
+*.sqlite
+
+# Keys and certificates (security)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+*.secrets

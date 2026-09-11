@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "yahadeen pharm go",
+    "slug": "yahadeen-customer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "yahadeenpharmgo",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "primaryColor": "#0036B6",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yahadeen.customer",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.yahadeen.customer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#070B18"
+          }
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow yahadeen pharm go to use Face ID to keep you signed in."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "yahadeen pharm go needs access to your photos so you can upload a prescription.",
+          "cameraPermission": "yahadeen pharm go needs your camera so you can photograph a prescription."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
