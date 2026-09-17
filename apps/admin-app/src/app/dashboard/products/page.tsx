@@ -44,7 +44,10 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/categories', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -57,7 +60,10 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products');
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/products', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       
       if (!response.ok) {
         console.error('Failed to fetch products:', response.status);
@@ -124,8 +130,10 @@ export default function ProductsPage() {
       uploadFormData.append('file', file);
       uploadFormData.append('type', 'product');
 
+      const token = localStorage.getItem('auth_token');
       const uploadResponse = await fetch('/api/upload/image', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: uploadFormData,
       });
 
@@ -149,10 +157,12 @@ export default function ProductsPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           ...formData,
@@ -181,10 +191,12 @@ export default function ProductsPage() {
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/products/${selectedProduct.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           ...formData,
