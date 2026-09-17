@@ -372,26 +372,3 @@ function GrowthMetric({ label, value }: { label: string, value: string }) {
     </div>
   );
 }
-
-function TestimonialCard({ name, role, content, rating }: { 
-  name: string; 
-  role: string; 
-  content: string;
-  rating: number;
-}) {
-  return (
-    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
-      <div className="flex gap-1 mb-4">
-        {[...Array(rating)].map((_, i) => (
-          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-        ))}
-      </div>
-      <p className="text-slate-300 leading-relaxed mb-4">{content}</p>
-      <div>
-        <p className="font-semibold text-white">{name}</p>
-        <p className="text-sm text-slate-400">{role}</p>
-      </div>
-    </div>
-  );
-}
-
