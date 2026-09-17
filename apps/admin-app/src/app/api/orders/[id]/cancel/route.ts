@@ -4,7 +4,7 @@ import { OrderService } from '@/server/services';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
@@ -19,7 +19,8 @@ export async function POST(
       return NextResponse.json({ error: 'Cancellation reason is required' }, { status: 400 });
     }
 
-    const order = await OrderService.cancelOrder(params.id, reason, auth);
+    const { id } = await params;
+    const order = await OrderService.cancelOrder(id, reason, auth);
 
     return NextResponse.json(order);
   } catch (error: any) {

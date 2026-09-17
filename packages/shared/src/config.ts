@@ -6,8 +6,8 @@
  * what to expect. Keeping them here means a fee change lands in one place.
  */
 
-/** Orders at or above this subtotal ship free. ₦20,000. */
-export const FREE_DELIVERY_THRESHOLD_KOBO = 2_000_000;
+/** Orders at or above this subtotal ship free. ₦50,000. */
+export const FREE_DELIVERY_THRESHOLD_KOBO = 5_000_000;
 
 /** Flat dispatch fee before distance is added. ₦500. */
 export const DELIVERY_BASE_FEE_KOBO = 50_000;

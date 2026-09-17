@@ -35,13 +35,14 @@ export default function InventoryPage() {
       });
       
       if (!response.ok) {
-        console.error('Failed to fetch inventory:', response.status);
+        console.error('Failed to fetch inventory:', response.status, response.statusText);
         setInventory([]);
         return;
       }
       
       const data = await response.json();
-      const dataArray = Array.isArray(data) ? data : [];
+      console.log('Inventory data:', data);
+      const dataArray = Array.isArray(data) ? data : (data.items || []);
       
       let filtered = dataArray;
       if (filter === 'low') {

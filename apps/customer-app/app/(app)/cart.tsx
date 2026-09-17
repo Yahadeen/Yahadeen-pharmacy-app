@@ -144,18 +144,18 @@ export default function Cart() {
               imageUrl={line.image_url}
               priceKobo={line.unit_price_kobo}
               requiresPrescription={line.requires_prescription}
-              note={line.qty > 1 ? `× ${line.qty}` : undefined}
+              note={line.quantity > 1 ? `× ${line.quantity}` : undefined}
               onPress={() => router.push(`/(app)/product/${line.product_id}`)}
             />
             <View style={styles.lineTools}>
               <QtyStepper
                 compact
-                value={line.qty}
+                value={line.quantity}
                 max={Math.min(MAX_QTY_PER_LINE, Math.max(1, line.stock))}
                 onChange={(next) => cart.setQty(line.product_id, next)}
               />
               <Text style={[styles.lineTotal, { color: colors.text }]}>
-                {formatNaira(line.unit_price_kobo * line.qty)}
+                {formatNaira(line.unit_price_kobo * line.quantity)}
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -167,7 +167,7 @@ export default function Cart() {
                 <Feather name="trash-2" size={14} color={colors.danger} />
               </Pressable>
             </View>
-            {line.stock > 0 && line.qty >= line.stock && (
+            {line.stock > 0 && line.quantity >= line.stock && (
               <Text style={[TYPE.caption, styles.capNote, { color: colors.warning }]}>
                 Only {line.stock} in stock right now.
               </Text>

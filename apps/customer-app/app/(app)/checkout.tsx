@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   DetailRow,
@@ -42,8 +42,19 @@ export default function Checkout() {
   const [rxUrl, setRxUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [placing, setPlacing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const addresses = useAsync(() => data.addresses(), []);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await addresses.reload();
+      await quote.reload();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Preselect the default address as soon as the list lands.
   useEffect(() => {
@@ -126,13 +137,20 @@ export default function Checkout() {
     try {
       const { order, payment_url } = await data.createOrder({
         address_id: addressId,
-        items: cart.lines.map((l) => ({ product_id: l.product_id, qty: l.qty })),
+        items: cart.lines.map((l) => ({ product_id: l.product_id, quantity: l.quantity })),
         note: note.trim() || undefined,
         prescription_url: rxUrl ?? undefined,
       });
+      
       cart.clear();
-      if (payment_url) await WebBrowser.openBrowserAsync(payment_url);
-      router.replace(`/(app)/order/${order.id}`);
+      
+      if (payment_url) {
+        // Navigate to payment confirmation screen with order ID
+        router.push(`/(app)/payment-confirm/${order.id}`);
+      } else {
+        // No payment needed, go directly to order
+        router.replace(`/(app)/order/${order.id}`);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'We could not place that order.');
     } finally {
@@ -155,6 +173,14 @@ export default function Checkout() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         <Entrance>
           <Section title="Deliver to" step={1}>
@@ -201,7 +227,7 @@ export default function Checkout() {
                       <View style={styles.flex}>
                         <View style={styles.addressTop}>
                           <Text style={[TYPE.label, { color: colors.text }]}>
-                            {a.label ?? 'Address'}
+                            {a.full_name}
                           </Text>
                           {a.is_default && (
                             <Text style={[styles.defaultTag, { color: colors.accentText }]}>
@@ -210,10 +236,10 @@ export default function Checkout() {
                           )}
                         </View>
                         <Text style={[TYPE.caption, styles.addressLine, { color: colors.mutedText }]}>
-                          {[a.line1, a.line2, a.city, a.state].filter(Boolean).join(', ')}
+                          {[a.address_line1, a.address_line2, a.city, a.state].filter(Boolean).join(', ')}
                         </Text>
                         <Text style={[TYPE.caption, { color: colors.faintText }]}>
-                          {a.recipient_name} · {a.phone}
+                          {a.phone}
                         </Text>
                       </View>
                     </Pressable>
@@ -295,8 +321,8 @@ export default function Checkout() {
               {cart.lines.map((l) => (
                 <DetailRow
                   key={l.product_id}
-                  label={`${l.name} × ${l.qty}`}
-                  value={formatNaira(l.unit_price_kobo * l.qty)}
+                  label={`${l.name} × ${l.quantity}`}
+                  value={formatNaira(l.unit_price_kobo * l.quantity)}
                 />
               ))}
               <Divider />

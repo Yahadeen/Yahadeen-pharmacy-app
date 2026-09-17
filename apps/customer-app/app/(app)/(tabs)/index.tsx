@@ -12,7 +12,8 @@ import {
   formatNaira,
 } from '@pharmago/shared';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   BrandGradient,
   CategoryTile,
@@ -20,7 +21,6 @@ import {
   GlassIconButton,
   ProductCard,
   ProductCardSkeleton,
-  Screen,
   SectionHeader,
 } from '@/src/components';
 import { useAsync } from '@/src/hooks/useAsync';
@@ -69,125 +69,140 @@ export default function Home() {
   };
 
   return (
-    <Screen scroll tabBarPadding refreshing={home.refreshing} onRefresh={home.refresh}>
-      <View style={styles.header}>
-        <View style={styles.flex}>
-          <Text style={[TYPE.label, { color: colors.mutedText }]}>{greeting()},</Text>
-          <Text numberOfLines={1} style={[TYPE.title, { color: colors.text }]}>
-            {firstName}
-          </Text>
+    <SafeAreaView style={[styles.flex, { backgroundColor: colors.background }]}>
+      {/* Fixed Header Section */}
+      <View style={[styles.headerContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <View style={styles.flex}>
+            <Text style={[TYPE.label, { color: colors.mutedText }]}>{greeting()},</Text>
+            <Text numberOfLines={1} style={[TYPE.title, { color: colors.text }]}>
+              {firstName}
+            </Text>
+          </View>
+          <GlassIconButton
+            icon="bell"
+            accessibilityLabel="Notifications"
+            badge={home.data?.unread}
+            onPress={() => router.push('/(app)/notifications')}
+          />
+          <GlassIconButton
+            icon="shopping-bag"
+            accessibilityLabel="Cart"
+            badge={cart.count}
+            onPress={() => router.push('/(app)/cart')}
+          />
         </View>
-        <GlassIconButton
-          icon="bell"
-          accessibilityLabel="Notifications"
-          badge={home.data?.unread}
-          onPress={() => router.push('/(app)/notifications')}
-        />
-        <GlassIconButton
-          icon="shopping-bag"
-          accessibilityLabel="Cart"
-          badge={cart.count}
-          onPress={() => router.push('/(app)/cart')}
-        />
+
+        <Pressable
+          accessibilityRole="search"
+          accessibilityLabel="Search medicines"
+          onPress={() => router.push('/(app)/search')}
+          style={({ pressed }) => [
+            styles.search,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Feather name="search" size={18} color={colors.faintText} />
+          <Text style={[TYPE.body, styles.flex, { color: colors.faintText }]}>
+            Search medicines, brands, vitamins…
+          </Text>
+          <View style={[styles.searchKbd, { backgroundColor: colors.primarySoft }]}>
+            <Feather name="mic" size={14} color={colors.primary} />
+          </View>
+        </Pressable>
+
+        <View style={styles.section}>
+          <SectionHeader title="Shop by category" />
+          {home.loading ? (
+            <View style={styles.catRow}>
+              {[0, 1, 2, 3].map((i) => (
+                <View key={i} style={[styles.catSkel, { backgroundColor: colors.skeleton }]} />
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.catRow}
+            >
+              {(home.data?.categories ?? []).map((category) => (
+                <CategoryTile
+                  key={category.id}
+                  category={category}
+                  onPress={() => router.push(`/(app)/category/${category.slug}`)}
+                />
+              ))}
+            </ScrollView>
+          )}
+        </View>
       </View>
 
-      <Pressable
-        accessibilityRole="search"
-        accessibilityLabel="Search medicines"
-        onPress={() => router.push('/(app)/search')}
-        style={({ pressed }) => [
-          styles.search,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-          pressed && styles.pressed,
-        ]}
+      {/* Scrollable Content Section */}
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={home.refreshing}
+            onRefresh={home.refresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
-        <Feather name="search" size={18} color={colors.faintText} />
-        <Text style={[TYPE.body, styles.flex, { color: colors.faintText }]}>
-          Search medicines, brands, vitamins…
-        </Text>
-        <View style={[styles.searchKbd, { backgroundColor: colors.primarySoft }]}>
-          <Feather name="mic" size={14} color={colors.primary} />
-        </View>
-      </Pressable>
-
-      {home.data?.activeOrder ? (
-        <Entrance>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Track order ${home.data.activeOrder.code}`}
-            onPress={() => router.push(`/(app)/order/${home.data!.activeOrder!.id}`)}
-          >
-            <BrandGradient style={styles.hero}>
-              <View style={styles.heroTop}>
-                <View style={styles.heroBadge}>
-                  <Feather name="truck" size={13} color="#FFFFFF" />
-                  <Text style={styles.heroBadgeText}>
-                    {ORDER_STATUS_META[home.data.activeOrder.status].label}
-                  </Text>
-                </View>
-                <Text style={styles.heroCode}>{home.data.activeOrder.code}</Text>
-              </View>
-              <Text style={styles.heroTitle}>
-                {ORDER_STATUS_META[home.data.activeOrder.status].detail}
-              </Text>
-              <View style={styles.heroFoot}>
-                <Text style={styles.heroMeta}>
-                  {home.data.activeOrder.item_count}{' '}
-                  {home.data.activeOrder.item_count === 1 ? 'item' : 'items'} ·{' '}
-                  {formatNaira(home.data.activeOrder.total_kobo)}
-                </Text>
-                <View style={styles.heroCta}>
-                  <Text style={styles.heroCtaText}>Track order</Text>
-                  <Feather name="arrow-right" size={15} color="#FFFFFF" />
-                </View>
-              </View>
-            </BrandGradient>
-          </Pressable>
-        </Entrance>
-      ) : (
-        <Entrance>
-          <BrandGradient style={styles.hero}>
-            <Text style={styles.heroTitle}>Free delivery on orders over ₦50,000</Text>
-            <Text style={styles.heroBody}>
-              Order before 6pm and a rider brings it the same day, anywhere in Lagos.
-            </Text>
+        <Entrance style={styles.heroEntrance}>
+          {home.data?.activeOrder ? (
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push('/(app)/search')}
-              style={({ pressed }) => [styles.heroButton, pressed && styles.pressed]}
+              accessibilityLabel={`Track order ${home.data.activeOrder.code}`}
+              onPress={() => router.push(`/(app)/order/${home.data!.activeOrder!.id}`)}
             >
-              <Text style={[styles.heroButtonText, { color: colors.primaryDeep }]}>
-                Browse medicines
-              </Text>
+              <BrandGradient style={styles.hero}>
+                <View style={styles.heroTop}>
+                  <View style={styles.heroBadge}>
+                    <Feather name="truck" size={13} color="#FFFFFF" />
+                    <Text style={styles.heroBadgeText}>
+                      {ORDER_STATUS_META[home.data.activeOrder.status].label}
+                    </Text>
+                  </View>
+                  <Text style={styles.heroCode}>{home.data.activeOrder.code}</Text>
+                </View>
+                <Text style={styles.heroTitle}>
+                  {ORDER_STATUS_META[home.data.activeOrder.status].detail}
+                </Text>
+                <View style={styles.heroFoot}>
+                  <Text style={styles.heroMeta}>
+                    {home.data.activeOrder.item_count}{' '}
+                    {home.data.activeOrder.item_count === 1 ? 'item' : 'items'} ·{' '}
+                    {formatNaira(home.data.activeOrder.total_kobo)}
+                  </Text>
+                  <View style={styles.heroCta}>
+                    <Text style={styles.heroCtaText}>Track order</Text>
+                    <Feather name="arrow-right" size={15} color="#FFFFFF" />
+                  </View>
+                </View>
+              </BrandGradient>
             </Pressable>
-          </BrandGradient>
+          ) : (
+            <BrandGradient style={styles.hero}>
+              <Text style={styles.heroTitle}>Free delivery on orders over ₦50,000</Text>
+              <Text style={styles.heroBody}>
+                Order before 6pm and a rider brings it the same day, anywhere in Lagos.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/(app)/search')}
+                style={({ pressed }) => [styles.heroButton, pressed && styles.pressed]}
+              >
+                <Text style={[styles.heroButtonText, { color: colors.primaryDeep }]}>
+                  Browse medicines
+                </Text>
+              </Pressable>
+            </BrandGradient>
+          )}
         </Entrance>
-      )}
-
-      <View style={styles.section}>
-        <SectionHeader title="Shop by category" />
-        {home.loading ? (
-          <View style={styles.catRow}>
-            {[0, 1, 2, 3].map((i) => (
-              <View key={i} style={[styles.catSkel, { backgroundColor: colors.skeleton }]} />
-            ))}
-          </View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.catRow}
-          >
-            {(home.data?.categories ?? []).map((category) => (
-              <CategoryTile
-                key={category.id}
-                category={category}
-                onPress={() => router.push(`/(app)/category/${category.slug}`)}
-              />
-            ))}
-          </ScrollView>
-        )}
-      </View>
 
       <View style={styles.section}>
         <SectionHeader
@@ -236,13 +251,22 @@ export default function Home() {
           </Text>
         </View>
       </View>
-    </Screen>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   pressed: { opacity: 0.8 },
+
+  headerContainer: {
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.md,
+    paddingBottom: SPACE.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+  },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, marginBottom: SPACE.lg },
 
@@ -262,6 +286,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  scrollContent: {
+    paddingHorizontal: SPACE.xl,
+    paddingBottom: SPACE.xl * 2, // Extra padding for tab bar
   },
 
   hero: { padding: SPACE.xl },
@@ -309,7 +338,9 @@ const styles = StyleSheet.create({
   },
   heroButtonText: { fontSize: 13.5, fontWeight: '800' },
 
-  section: { marginTop: SPACE.xxl },
+  heroEntrance: { marginBottom: SPACE.xl },
+
+  section: { marginBottom: SPACE.xl },
   catRow: { flexDirection: 'row', gap: SPACE.sm, paddingRight: SPACE.xl },
   catSkel: { width: 86, height: 96, borderRadius: RADIUS.md },
 
@@ -329,7 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: SPACE.md,
-    marginTop: SPACE.xxl,
+    marginBottom: SPACE.xl,
     padding: SPACE.lg,
     borderRadius: RADIUS.md,
   },

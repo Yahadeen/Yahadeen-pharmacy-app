@@ -17,6 +17,7 @@ import type {
   ProductWithStock,
   Profile,
   StockMovement,
+  SupportTicket,
 } from '@pharmago/shared';
 import { supabase } from './supabase';
 
@@ -243,5 +244,24 @@ export const api = {
     list: () => request<AppNotification[]>('/api/notifications'),
     markRead: (id: string) => request<void>(`/api/notifications/${id}/read`, { method: 'POST' }),
     markAllRead: () => request<void>('/api/notifications/read-all', { method: 'POST' }),
+  },
+
+  /* ---------------------------------------------------- support tickets -- */
+  support: {
+    list: () => request<{ tickets: SupportTicket[] }>('/api/support/tickets'),
+    get: (id: string) => request<{ ticket: SupportTicket }>(`/api/support/tickets/${id}`),
+    updateStatus: (id: string, status: 'open' | 'in_progress' | 'resolved' | 'closed') =>
+      request<{ ticket: SupportTicket }>(`/api/support/tickets/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }),
+    messages: {
+      list: (ticketId: string) => request<{ messages: any[] }>(`/api/support/tickets/${ticketId}/messages`),
+      send: (ticketId: string, message: string) =>
+        request<{ message: any }>(`/api/support/tickets/${ticketId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ message }),
+        }),
+    },
   },
 };

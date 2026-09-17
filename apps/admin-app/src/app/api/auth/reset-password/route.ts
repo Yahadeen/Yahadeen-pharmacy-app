@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user exists
     const { data: user, error } = await supabaseAdmin
-      .from('profiles')
+      .from('users')
       .select('id, email, full_name')
       .eq('email', email)
       .single();

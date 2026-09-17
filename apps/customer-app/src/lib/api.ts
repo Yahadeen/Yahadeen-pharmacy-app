@@ -18,6 +18,7 @@ import type {
   ProductQuery,
   ProductWithStock,
   Profile,
+  SupportTicket,
 } from '@pharmago/shared';
 import { supabase } from './supabase';
 
@@ -213,7 +214,7 @@ export const api = {
   /* ------------------------------------------------------------ addresses -- */
   addresses: {
     list: () => request<Address[]>('/api/addresses'),
-    create: (payload: Omit<Address, 'id' | 'user_id' | 'created_at'>) =>
+    create: (payload: Omit<Address, 'id' | 'user_id' | 'created_at' | 'updated_at'>) =>
       request<Address>('/api/addresses', { method: 'POST', body: JSON.stringify(payload) }),
     update: (id: string, patch: Partial<Address>) =>
       request<Address>(`/api/addresses/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
@@ -262,6 +263,25 @@ export const api = {
     list: () => request<AppNotification[]>('/api/notifications'),
     markRead: (id: string) => request<void>(`/api/notifications/${id}/read`, { method: 'POST' }),
     markAllRead: () => request<void>('/api/notifications/read-all', { method: 'POST' }),
+  },
+
+  /* ---------------------------------------------------- support tickets -- */
+  support: {
+    list: () => request<{ tickets: SupportTicket[] }>('/api/support/tickets'),
+    get: (id: string) => request<{ ticket: SupportTicket }>(`/api/support/tickets/${id}`),
+    create: (payload: { order_id: string; subject: string; category?: string; description?: string }) =>
+      request<{ ticket: SupportTicket }>('/api/support/tickets', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    messages: {
+      list: (ticketId: string) => request<{ messages: any[] }>(`/api/support/tickets/${ticketId}/messages`),
+      send: (ticketId: string, message: string) =>
+        request<{ message: any }>(`/api/support/tickets/${ticketId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ message }),
+        }),
+    },
   },
 };
 

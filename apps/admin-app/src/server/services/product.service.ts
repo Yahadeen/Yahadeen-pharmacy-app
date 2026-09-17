@@ -58,7 +58,12 @@ export class ProductService {
   }): Promise<ProductWithStock[]> {
     let query = supabaseAdmin
       .from('products')
-      .select('*');
+      .select(`
+        *,
+        categories:category_id (
+          name
+        )
+      `);
 
     // Apply sorting
     if (filters?.sort === 'price_asc') {
@@ -103,6 +108,7 @@ export class ProductService {
       quantity: item.stock_quantity || 0,
       stock_quantity: item.stock_quantity || 0,
       low_stock_threshold: item.low_stock_threshold || 10,
+      category_name: item.categories?.name || null,
     }));
   }
 
@@ -112,7 +118,12 @@ export class ProductService {
   static async getProductById(id: string): Promise<ProductWithStock | null> {
     const { data, error } = await supabaseAdmin
       .from('products')
-      .select('*')
+      .select(`
+        *,
+        categories:category_id (
+          name
+        )
+      `)
       .eq('id', id)
       .single();
 
@@ -128,6 +139,7 @@ export class ProductService {
       quantity: data.stock_quantity || 0,
       stock_quantity: data.stock_quantity || 0,
       low_stock_threshold: data.low_stock_threshold || 10,
+      category_name: data.categories?.name || null,
     };
   }
 

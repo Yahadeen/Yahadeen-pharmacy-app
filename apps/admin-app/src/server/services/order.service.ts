@@ -30,24 +30,44 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string;
-  name_snapshot: string;
+  quantity: number;
   unit_price_kobo: number;
-  qty: number;
+  total_kobo: number;
   created_at: string;
+  product?: {
+    id: string;
+    name: string;
+    image_url: string | null;
+  };
 }
 
 export interface OrderWithItems extends Order {
   items: OrderItem[];
+  address?: {
+    id: string;
+    full_name: string;
+    phone: string;
+    address_line1: string;
+    address_line2: string | null;
+    city: string;
+    state: string;
+    postal_code: string | null;
+    country: string;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface CreateOrderInput {
   customer_id: string;
   items: Array<{
     product_id: string;
-    qty: number;
+    quantity: number;
   }>;
   address_id: string;
   notes?: string;
+  prescription_url?: string;
 }
 
 export interface UpdateOrderStatusInput {
@@ -66,10 +86,10 @@ export class OrderService {
     status?: string;
     limit?: number;
     offset?: number;
-  }): Promise<Order[]> {
+  }): Promise<{ items: Order[]; total: number; page: number; page_size: number }> {
     let query = supabaseAdmin
       .from('orders')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (filters?.customer_id) {
@@ -84,21 +104,24 @@ export class OrderService {
       query = query.eq('status', filters.status);
     }
 
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
+    const limit = filters?.limit || 20;
+    const offset = filters?.offset || 0;
+    const page = Math.floor(offset / limit) + 1;
 
-    if (filters?.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
-    }
+    query = query.range(offset, offset + limit - 1);
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch orders: ${error.message}`);
     }
 
-    return data;
+    return {
+      items: data || [],
+      total: count || 0,
+      page,
+      page_size: limit,
+    };
   }
 
   /**
@@ -107,7 +130,10 @@ export class OrderService {
   static async getOrderById(id: string): Promise<OrderWithItems | null> {
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select('*')
+      .select(`
+        *,
+        addresses(*)
+      `)
       .eq('id', id)
       .single();
 
@@ -120,7 +146,10 @@ export class OrderService {
 
     const { data: items, error: itemsError } = await supabaseAdmin
       .from('order_items')
-      .select('*')
+      .select(`
+        *,
+        products(id, name, image_url)
+      `)
       .eq('order_id', id);
 
     if (itemsError) {
@@ -129,7 +158,11 @@ export class OrderService {
 
     return {
       ...order,
-      items,
+      items: items.map((item: any) => ({
+        ...item,
+        product: item.products,
+      })),
+      address: order.addresses as any,
     };
   }
 
@@ -152,33 +185,26 @@ export class OrderService {
     const productIds = input.items.map((item) => item.product_id);
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
-      .select('id, name, price_kobo, is_active')
+      .select('id, name, price_kobo, is_active, stock_quantity')
       .in('id', productIds);
 
     if (productsError || !products) {
       throw new Error('Failed to fetch products');
     }
 
-    // Check stock availability
-    const { data: inventory } = await supabaseAdmin
-      .from('inventory')
-      .select('product_id, quantity')
-      .in('product_id', productIds);
-
-    const inventoryMap = new Map(
-      (inventory || []).map((inv: any) => [inv.product_id, inv.quantity])
-    );
-
+    // Check stock availability using products.stock_quantity
     for (const item of input.items) {
       const product = products.find((p) => p.id === item.product_id);
-      const stock = inventoryMap.get(item.product_id) || 0;
+      const stock = product?.stock_quantity ?? 0;
 
       if (!product || !product.is_active) {
         throw new Error(`Product ${item.product_id} is not available`);
       }
 
-      if (stock < item.qty) {
-        throw new Error(`Insufficient stock for product ${item.product_id}`);
+      console.log(`Stock check for product ${item.product_id} (${product.name}): requested=${item.quantity}, available=${stock}`);
+
+      if (stock < item.quantity) {
+        throw new Error(`Insufficient stock for product ${product.name}. Requested: ${item.quantity}, Available: ${stock}`);
       }
     }
 
@@ -186,18 +212,36 @@ export class OrderService {
     let subtotalKobo = 0;
     const orderItems = input.items.map((item) => {
       const product = products.find((p) => p.id === item.product_id)!;
-      const lineTotal = product.price_kobo * item.qty;
+      const lineTotal = product.price_kobo * item.quantity;
       subtotalKobo += lineTotal;
       return {
         product_id: item.product_id,
-        name_snapshot: product.name || 'Product',
+        quantity: item.quantity,
         unit_price_kobo: product.price_kobo,
-        qty: item.qty,
+        total_kobo: lineTotal,
       };
     });
 
-    // Calculate delivery fee (simplified - should use distance-based calculation)
-    const deliveryFeeKobo = 1000; // Base fee
+    // Create a proper address snapshot (only necessary fields)
+    const addressSnapshot = {
+      id: address.id,
+      full_name: address.full_name,
+      phone: address.phone,
+      address_line1: address.address_line1,
+      address_line2: address.address_line2,
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
+      country: address.country,
+    };
+
+    // Calculate delivery fee using the shared config
+    const { FREE_DELIVERY_THRESHOLD_KOBO, DELIVERY_BASE_FEE_KOBO, DELIVERY_PER_KM_KOBO } = await import('@pharmago/shared');
+    const distanceKm = 5; // Default 5km for now (should calculate from address coords)
+    let deliveryFeeKobo = 0;
+    if (subtotalKobo < FREE_DELIVERY_THRESHOLD_KOBO) {
+      deliveryFeeKobo = DELIVERY_BASE_FEE_KOBO + Math.round(distanceKm * DELIVERY_PER_KM_KOBO);
+    }
     const totalKobo = subtotalKobo + deliveryFeeKobo;
 
     // Create order
@@ -209,7 +253,7 @@ export class OrderService {
         subtotal_kobo: subtotalKobo,
         delivery_fee_kobo: deliveryFeeKobo,
         total_kobo: totalKobo,
-        address_snapshot: address,
+        address_id: input.address_id,
         notes: input.notes,
       })
       .select()
@@ -233,6 +277,27 @@ export class OrderService {
       throw new Error(`Failed to create order items: ${itemsError.message}`);
     }
 
+    // Deduct stock from products
+    for (const item of input.items) {
+      const product = products.find((p) => p.id === item.product_id)!;
+      const newStock = product.stock_quantity - item.quantity;
+      const { error: stockError } = await supabaseAdmin
+        .from('products')
+        .update({ stock_quantity: newStock })
+        .eq('id', item.product_id);
+      
+      if (stockError) {
+        console.error(`Failed to deduct stock for product ${item.product_id}:`, stockError);
+      }
+    }
+
+    // Fetch the address for the response
+    const { data: orderAddress } = await supabaseAdmin
+      .from('addresses')
+      .select('*')
+      .eq('id', input.address_id)
+      .single();
+
     return {
       ...order,
       items: orderItems.map((item, idx) => ({
@@ -241,6 +306,7 @@ export class OrderService {
         ...item,
         created_at: order.created_at,
       })),
+      address: orderAddress || undefined,
     };
   }
 
@@ -257,8 +323,20 @@ export class OrderService {
     };
 
     // Add timestamp based on status
-    const timestampField = `${input.status}_at`;
-    if (timestampField !== '_at') {
+    const timestampMap: Record<string, string> = {
+      'paid': 'paid_at',
+      'confirmed': 'confirmed_at',
+      'preparing': 'preparing_at',
+      'packed': 'packed_at',
+      'ready_for_pickup': 'ready_at',
+      'picked_up': 'picked_up_at',
+      'out_for_delivery': 'out_for_delivery_at',
+      'delivered': 'delivered_at',
+      'cancelled': 'cancelled_at',
+    };
+
+    const timestampField = timestampMap[input.status];
+    if (timestampField) {
       updates[timestampField] = new Date().toISOString();
     }
 
@@ -268,7 +346,9 @@ export class OrderService {
 
     if (input.cancellation_reason) {
       updates.cancellation_reason = input.cancellation_reason;
-      updates.cancelled_at = new Date().toISOString();
+      if (!updates.cancelled_at) {
+        updates.cancelled_at = new Date().toISOString();
+      }
     }
 
     const { data, error } = await supabaseAdmin
@@ -307,16 +387,26 @@ export class OrderService {
   private static async restoreStock(orderId: string): Promise<void> {
     const { data: items } = await supabaseAdmin
       .from('order_items')
-      .select('product_id, qty')
+      .select('product_id, quantity')
       .eq('order_id', orderId);
 
     if (!items) return;
 
     for (const item of items) {
-      await supabaseAdmin.rpc('increment_stock', {
-        product_id: item.product_id,
-        amount: item.qty,
-      });
+      // Get current stock
+      const { data: product } = await supabaseAdmin
+        .from('products')
+        .select('stock_quantity')
+        .eq('id', item.product_id)
+        .single();
+      
+      if (product) {
+        const newStock = product.stock_quantity + item.quantity;
+        await supabaseAdmin
+          .from('products')
+          .update({ stock_quantity: newStock })
+          .eq('id', item.product_id);
+      }
     }
   }
 

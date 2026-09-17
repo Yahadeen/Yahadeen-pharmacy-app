@@ -26,7 +26,7 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 // Helper to verify JWT and extract user ID
-export async function verifyToken(token: string): Promise<{ userId: string; role: string } | null> {
+export async function verifyToken(token: string): Promise<{ userId: string; role: string; email?: string } | null> {
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
@@ -54,5 +54,6 @@ export async function verifyToken(token: string): Promise<{ userId: string; role
   return {
     userId: data.user.id,
     role: user.role,
+    email: data.user.email,
   };
 }

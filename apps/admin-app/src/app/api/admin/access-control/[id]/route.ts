@@ -10,14 +10,14 @@ function requireSuperAdmin(auth: any) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     requireSuperAdmin(auth);
 
     const body = await request.json();
-    const { id } = params;
+    const { id } = await params;
 
     const { data, error } = await supabaseAdmin
       .from('admin_access')
@@ -43,13 +43,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     requireSuperAdmin(auth);
 
-    const { id } = params;
+    const { id } = await params;
 
     const { error } = await supabaseAdmin
       .from('admin_access')

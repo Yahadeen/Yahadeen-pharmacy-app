@@ -25,7 +25,7 @@ export interface CartLine {
   pack_size: string | null;
   image_url: string | null;
   unit_price_kobo: number;
-  qty: number;
+  quantity: number;
   requires_prescription: boolean;
   /** Stock as it was when the line was added; re-checked server-side at checkout. */
   stock: number;
@@ -76,7 +76,7 @@ export function CartProvider({ children }: PropsWithChildren) {
       if (existing) {
         return prev.map((l) =>
           l.product_id === product.id
-            ? { ...l, qty: Math.min(cap, l.qty + qty), stock: product.quantity }
+            ? { ...l, quantity: Math.min(cap, l.quantity + qty), stock: product.quantity }
             : l,
         );
       }
@@ -88,7 +88,7 @@ export function CartProvider({ children }: PropsWithChildren) {
           pack_size: product.pack_size,
           image_url: product.image_url,
           unit_price_kobo: product.price_kobo,
-          qty: Math.min(cap, qty),
+          quantity: Math.min(cap, qty),
           requires_prescription: product.requires_prescription,
           stock: product.quantity,
         },
@@ -100,7 +100,7 @@ export function CartProvider({ children }: PropsWithChildren) {
     setLines((prev) =>
       qty <= 0
         ? prev.filter((l) => l.product_id !== productId)
-        : prev.map((l) => (l.product_id === productId ? { ...l, qty } : l)),
+        : prev.map((l) => (l.product_id === productId ? { ...l, quantity: qty } : l)),
     );
   }, []);
 
@@ -111,14 +111,14 @@ export function CartProvider({ children }: PropsWithChildren) {
   const clear = useCallback(() => setLines([]), []);
 
   const value = useMemo<CartValue>(() => {
-    const count = lines.reduce((n, l) => n + l.qty, 0);
+    const count = lines.reduce((n, l) => n + l.quantity, 0);
     return {
       lines,
       hydrated,
       count,
       subtotalKobo: sumKobo(lines),
       requiresPrescription: lines.some((l) => l.requires_prescription),
-      qtyOf: (productId) => lines.find((l) => l.product_id === productId)?.qty ?? 0,
+      qtyOf: (productId) => lines.find((l) => l.product_id === productId)?.quantity ?? 0,
       add,
       setQty,
       remove,

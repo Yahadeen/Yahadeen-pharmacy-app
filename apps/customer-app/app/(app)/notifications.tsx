@@ -230,7 +230,7 @@ export default function NotificationsScreen() {
                           {isUnread && <View style={[styles.dot, { backgroundColor: colors.accent }]} />}
                         </View>
                         <Text style={[TYPE.caption, styles.body, { color: colors.mutedText }]}>
-                          {row.body}
+                          {row.message}
                         </Text>
                         <View style={styles.metaRow}>
                           <Text style={[TYPE.caption, { color: colors.faintText }]}>

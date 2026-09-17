@@ -11,7 +11,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(15);
+  const [itemsPerPage] = useState(20);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -44,12 +44,7 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/categories', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/categories');
       
       if (response.ok) {
         const data = await response.json();
@@ -62,12 +57,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/products', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/products');
       
       if (!response.ok) {
         console.error('Failed to fetch products:', response.status);
@@ -76,7 +66,14 @@ export default function ProductsPage() {
       }
       
       const data = await response.json();
-      setProducts(Array.isArray(data) ? data : []);
+      // Handle paginated response format
+      if (data.items && Array.isArray(data.items)) {
+        setProducts(data.items);
+      } else if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Failed to fetch products:', error);
       setProducts([]);
@@ -123,17 +120,12 @@ export default function ProductsPage() {
 
     setUploading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('type', 'product');
 
       const uploadResponse = await fetch('/api/upload/image', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: uploadFormData,
       });
 
@@ -157,12 +149,10 @@ export default function ProductsPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -191,12 +181,10 @@ export default function ProductsPage() {
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/products/${selectedProduct.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -522,9 +510,9 @@ export default function ProductsPage() {
           }}
         >
           <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+            Page {currentPage} of {totalPages} ({filteredProducts.length} products)
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
@@ -541,45 +529,9 @@ export default function ProductsPage() {
             >
               Previous
             </button>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid var(--border)',
-                      background: currentPage === pageNum ? 'var(--brand)' : 'var(--surface)',
-                      color: currentPage === pageNum ? 'white' : 'var(--text)',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: 14,
-                    }}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
+            <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>
+              {currentPage}
+            </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}

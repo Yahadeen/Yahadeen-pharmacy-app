@@ -40,28 +40,26 @@ import { data } from '@/src/lib/data';
 import { useToast } from '@/src/state/ToastProvider';
 import { useTheme } from '@/src/theme';
 
-/** Everything the form collects. `lat`/`lng` are geocoded server-side later. */
+/** Everything the form collects. */
 type Draft = {
-  label: string;
-  recipient_name: string;
+  full_name: string;
   phone: string;
-  line1: string;
-  line2: string;
+  address_line1: string;
+  address_line2: string;
   city: string;
   state: string;
-  landmark: string;
+  postal_code: string;
   is_default: boolean;
 };
 
 const EMPTY: Draft = {
-  label: 'Home',
-  recipient_name: '',
+  full_name: '',
   phone: '',
-  line1: '',
-  line2: '',
+  address_line1: '',
+  address_line2: '',
   city: '',
   state: 'Lagos',
-  landmark: '',
+  postal_code: '',
   is_default: false,
 };
 
@@ -69,14 +67,13 @@ const QUICK_LABELS = ['Home', 'Office', 'Other'];
 
 function draftFrom(address: Address): Draft {
   return {
-    label: address.label ?? '',
-    recipient_name: address.recipient_name,
-    phone: address.phone,
-    line1: address.line1,
-    line2: address.line2 ?? '',
+    full_name: address.full_name,
+    phone: address.phone ?? '',
+    address_line1: address.address_line1,
+    address_line2: address.address_line2 ?? '',
     city: address.city,
     state: address.state,
-    landmark: address.landmark ?? '',
+    postal_code: address.postal_code ?? '',
     is_default: address.is_default,
   };
 }
@@ -116,10 +113,10 @@ export default function AddressesScreen() {
 
   const validate = (): boolean => {
     const next: Partial<Record<keyof Draft, string>> = {};
-    if (!draft.recipient_name.trim()) next.recipient_name = 'Who should the rider ask for?';
+    if (!draft.full_name.trim()) next.full_name = 'Who should the rider ask for?';
     if (!draft.phone.trim()) next.phone = 'A number the rider can call.';
     else if (!isNigerianPhone(draft.phone)) next.phone = 'That does not look like a phone number.';
-    if (!draft.line1.trim()) next.line1 = 'Street and house number.';
+    if (!draft.address_line1.trim()) next.address_line1 = 'Street and house number.';
     if (!draft.city.trim()) next.city = 'Which area?';
     if (!draft.state.trim()) next.state = 'Which state?';
     setErrors(next);
@@ -130,16 +127,14 @@ export default function AddressesScreen() {
     if (!validate()) return;
     setSaving(true);
     const payload = {
-      label: draft.label.trim() || null,
-      recipient_name: draft.recipient_name.trim(),
+      full_name: draft.full_name.trim(),
       phone: normalizeNigerianPhone(draft.phone),
-      line1: draft.line1.trim(),
-      line2: draft.line2.trim() || null,
+      address_line1: draft.address_line1.trim(),
+      address_line2: draft.address_line2.trim() || null,
       city: draft.city.trim(),
       state: draft.state.trim(),
-      landmark: draft.landmark.trim() || null,
-      lat: editing?.lat ?? null,
-      lng: editing?.lng ?? null,
+      postal_code: draft.postal_code.trim() || null,
+      country: 'Nigeria',
       is_default: draft.is_default,
     };
 
@@ -159,7 +154,7 @@ export default function AddressesScreen() {
   const makeDefault = async (address: Address) => {
     try {
       await data.updateAddress(address.id, { is_default: true });
-      toast.success(`${address.label ?? 'That address'} is now your default.`);
+      toast.success('That address is now your default.');
       await view.reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not change your default address.');
@@ -260,17 +255,17 @@ export default function AddressesScreen() {
                   <View style={styles.flex}>
                     <View style={styles.titleRow}>
                       <Text style={[TYPE.label, { color: colors.text }]}>
-                        {address.label ?? 'Address'}
+                        {address.full_name}
                       </Text>
                       {address.is_default && <StatusPill label="Default" tone="info" />}
                     </View>
                     <Text style={[TYPE.caption, styles.lines, { color: colors.mutedText }]}>
-                      {[address.line1, address.line2, address.landmark, address.city, address.state]
+                      {[address.address_line1, address.address_line2, address.city, address.state]
                         .filter(Boolean)
                         .join(', ')}
                     </Text>
                     <Text style={[TYPE.caption, { color: colors.faintText }]}>
-                      {address.recipient_name} · {address.phone}
+                      {address.phone}
                     </Text>
                   </View>
                 </View>
@@ -292,7 +287,7 @@ export default function AddressesScreen() {
                   <View style={styles.flex} />
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`Edit ${address.label ?? 'address'}`}
+                    accessibilityLabel={`Edit ${address.full_name}`}
                     hitSlop={6}
                     onPress={() => openEdit(address)}
                     style={styles.tool}
@@ -302,7 +297,7 @@ export default function AddressesScreen() {
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`Remove ${address.label ?? 'address'}`}
+                    accessibilityLabel={`Remove ${address.full_name}`}
                     hitSlop={6}
                     onPress={() => confirmRemove(address)}
                     style={styles.tool}
@@ -344,47 +339,14 @@ export default function AddressesScreen() {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={[TYPE.label, styles.fieldLabel, { color: colors.mutedText }]}>
-                  Label
-                </Text>
-                <View style={styles.labelRow}>
-                  {QUICK_LABELS.map((option) => {
-                    const active = draft.label === option;
-                    return (
-                      <Pressable
-                        key={option}
-                        accessibilityRole="radio"
-                        accessibilityState={{ selected: active }}
-                        onPress={() => set('label', option)}
-                        style={[
-                          styles.labelChip,
-                          {
-                            backgroundColor: active ? colors.primarySoft : colors.surface,
-                            borderColor: active ? colors.primary : colors.border,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            TYPE.caption,
-                            { color: active ? colors.primary : colors.mutedText },
-                          ]}
-                        >
-                          {option}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
                 <Field
-                  label="Recipient"
+                  label="Full Name"
                   icon="user"
-                  placeholder="Who the rider should ask for"
+                  placeholder="John Doe"
                   autoCapitalize="words"
-                  value={draft.recipient_name}
-                  error={errors.recipient_name}
-                  onChangeText={(t) => set('recipient_name', t)}
+                  value={draft.full_name}
+                  error={errors.full_name}
+                  onChangeText={(t) => set('full_name', t)}
                   style={styles.field}
                 />
                 <Field
@@ -398,24 +360,24 @@ export default function AddressesScreen() {
                   style={styles.field}
                 />
                 <Field
-                  label="Street address"
+                  label="Street Address"
                   icon="home"
                   placeholder="14B Admiralty Way"
-                  value={draft.line1}
-                  error={errors.line1}
-                  onChangeText={(t) => set('line1', t)}
+                  value={draft.address_line1}
+                  error={errors.address_line1}
+                  onChangeText={(t) => set('address_line1', t)}
                   style={styles.field}
                 />
                 <Field
-                  label="Apartment or floor"
-                  placeholder="Flat 3 (optional)"
-                  value={draft.line2}
-                  onChangeText={(t) => set('line2', t)}
+                  label="Apartment or Floor (Optional)"
+                  placeholder="Flat 3, Floor 2"
+                  value={draft.address_line2}
+                  onChangeText={(t) => set('address_line2', t)}
                   style={styles.field}
                 />
                 <View style={styles.pair}>
                   <Field
-                    label="Area"
+                    label="City"
                     placeholder="Lekki Phase 1"
                     autoCapitalize="words"
                     value={draft.city}
@@ -434,11 +396,10 @@ export default function AddressesScreen() {
                   />
                 </View>
                 <Field
-                  label="Landmark"
-                  icon="flag"
-                  placeholder="Opposite Circle Mall (optional)"
-                  value={draft.landmark}
-                  onChangeText={(t) => set('landmark', t)}
+                  label="Postal Code (Optional)"
+                  placeholder="100001"
+                  value={draft.postal_code}
+                  onChangeText={(t) => set('postal_code', t)}
                   style={styles.field}
                 />
 

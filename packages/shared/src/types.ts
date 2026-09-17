@@ -31,18 +31,17 @@ export interface Profile {
 export interface Address {
   id: string;
   user_id: string;
-  label: string | null;
-  recipient_name: string;
-  phone: string;
-  line1: string;
-  line2: string | null;
+  full_name: string;
+  phone: string | null;
+  address_line1: string;
+  address_line2: string | null;
   city: string;
   state: string;
-  landmark: string | null;
-  lat: number | null;
-  lng: number | null;
+  postal_code: string | null;
+  country: string;
   is_default: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 /** Frozen copy of the address written onto the order at checkout. */
@@ -113,12 +112,19 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string | null;
-  /** Name and price as they were at checkout, so later catalogue edits never rewrite history. */
-  name_snapshot: string;
-  pack_size_snapshot: string | null;
-  image_url_snapshot: string | null;
   unit_price_kobo: number;
-  qty: number;
+  quantity: number;
+  total_kobo: number;
+  created_at: string;
+  product?: {
+    id: string;
+    name: string;
+    image_url: string | null;
+  };
+  // These fields are expected by the attendant app for snapshots
+  name_snapshot?: string;
+  pack_size_snapshot?: string | null;
+  image_url_snapshot?: string | null;
 }
 
 export interface Order {
@@ -130,7 +136,7 @@ export interface Order {
   subtotal_kobo: number;
   delivery_fee_kobo: number;
   total_kobo: number;
-  address_snapshot: AddressSnapshot;
+  address_id: string | null;
   /** Free-text note from the customer, e.g. "call before you arrive". */
   note: string | null;
   prescription_url: string | null;
@@ -151,6 +157,8 @@ export interface OrderDetail extends Order {
   payment: Payment | null;
   delivery: Delivery | null;
   customer: Pick<Profile, 'id' | 'full_name' | 'phone' | 'avatar_url'> | null;
+  address: Address | null;
+  address_snapshot?: AddressSnapshot;
   unread_messages: number;
 }
 
@@ -210,7 +218,7 @@ export interface AppNotification {
   id: string;
   user_id: string;
   title: string;
-  body: string;
+  message: string;
   /** Deep-link payload, e.g. `{ kind: 'order', id: '…' }`. */
   data: Record<string, unknown> | null;
   read_at: string | null;
@@ -238,7 +246,7 @@ export interface ProductQuery {
 /** What the client posts to `/api/orders`. Prices are re-derived server-side. */
 export interface CreateOrderPayload {
   address_id: string;
-  items: { product_id: string; qty: number }[];
+  items: { product_id: string; quantity: number }[];
   note?: string;
   prescription_url?: string;
 }

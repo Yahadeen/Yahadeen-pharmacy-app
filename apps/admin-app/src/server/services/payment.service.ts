@@ -23,7 +23,7 @@ export interface InitPaymentInput {
 
 export class PaymentService {
   private static PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
-  private static PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY!;
+  private static PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!;
 
   /**
    * Initialize a payment transaction with Paystack
@@ -32,10 +32,10 @@ export class PaymentService {
     authorization_url: string;
     reference: string;
   }> {
-    // Get order details
+    // Get order details with customer email
     const { data: order, error } = await supabaseAdmin
       .from('orders')
-      .select('*, profiles(email)')
+      .select('*, customer:customer_id(email)')
       .eq('id', input.order_id)
       .single();
 
@@ -56,7 +56,7 @@ export class PaymentService {
       },
       body: JSON.stringify({
         amount: input.amount_kobo,
-        email: input.email || order.profiles.email,
+        email: input.email || order.customer.email,
         reference: `PG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         metadata: {
           order_id: input.order_id,

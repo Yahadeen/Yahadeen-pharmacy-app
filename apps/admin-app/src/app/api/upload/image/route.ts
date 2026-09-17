@@ -12,8 +12,10 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const type = formData.get('type') as string; // 'product', 'category', 'avatar'
+    // @ts-ignore - FormData.get() is available in runtime but TypeScript types are incomplete
+    const file = formData.get('file') as File | null;
+    // @ts-ignore - FormData.get() is available in runtime but TypeScript types are incomplete
+    const type = formData.get('type') as string | null; // 'product', 'category', 'avatar'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });

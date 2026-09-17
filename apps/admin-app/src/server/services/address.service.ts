@@ -4,7 +4,8 @@ import { AuthContext } from '../auth';
 export interface Address {
   id: string;
   user_id: string;
-  label?: string;
+  full_name: string;
+  phone?: string;
   address_line1: string;
   address_line2?: string;
   city: string;
@@ -12,36 +13,32 @@ export interface Address {
   postal_code?: string;
   country: string;
   is_default: boolean;
-  lat?: number;
-  lng?: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateAddressInput {
   user_id: string;
-  label?: string;
+  full_name: string;
+  phone?: string;
   address_line1: string;
   address_line2?: string;
   city: string;
   state: string;
   postal_code?: string;
   country?: string;
-  lat?: number;
-  lng?: number;
   is_default?: boolean;
 }
 
 export interface UpdateAddressInput {
-  label?: string;
+  full_name?: string;
+  phone?: string;
   address_line1?: string;
   address_line2?: string;
   city?: string;
   state?: string;
   postal_code?: string;
   country?: string;
-  lat?: number;
-  lng?: number;
   is_default?: boolean;
 }
 
@@ -118,15 +115,14 @@ export class AddressService {
       .from('addresses')
       .insert({
         user_id: input.user_id,
-        label: input.label,
+        full_name: input.full_name,
+        phone: input.phone,
         address_line1: input.address_line1,
         address_line2: input.address_line2,
         city: input.city,
         state: input.state,
         postal_code: input.postal_code,
         country: input.country || 'Nigeria',
-        lat: input.lat,
-        lng: input.lng,
         is_default: input.is_default || false,
       })
       .select()
@@ -135,6 +131,8 @@ export class AddressService {
     if (error) {
       throw new Error(`Failed to create address: ${error.message}`);
     }
+
+    // Notification is created by database trigger
 
     return data;
   }
@@ -167,6 +165,8 @@ export class AddressService {
     if (error) {
       throw new Error(`Failed to update address: ${error.message}`);
     }
+
+    // Notification is created by database trigger
 
     return data;
   }
@@ -209,6 +209,13 @@ export class AddressService {
       throw new Error('Forbidden');
     }
 
+    // First, unset all default addresses for this user
+    await supabaseAdmin
+      .from('addresses')
+      .update({ is_default: false })
+      .eq('user_id', address.user_id);
+
+    // Then set this one as default
     const { data, error } = await supabaseAdmin
       .from('addresses')
       .update({ is_default: true })
@@ -233,23 +240,8 @@ export class AddressService {
     baseFeeKobo: number,
     perKmKobo: number
   ): number {
-    if (!address.lat || !address.lng) {
-      return baseFeeKobo;
-    }
-
-    // Calculate distance using Haversine formula
-    const R = 6371; // Earth's radius in km
-    const dLat = (address.lat - storeLat) * (Math.PI / 180);
-    const dLng = (address.lng - storeLng) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(storeLat * (Math.PI / 180)) *
-        Math.cos(address.lat * (Math.PI / 180)) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-
-    return baseFeeKobo + Math.floor(distance * perKmKobo);
+    // Since we don't have lat/lng in the current schema, use a simplified approach
+    // You can implement more complex logic later if needed
+    return baseFeeKobo;
   }
 }

@@ -4,7 +4,7 @@ import { NotificationService } from '@/server/services';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
@@ -20,7 +20,8 @@ export async function PATCH(
     }
 
     if (is_read) {
-      await NotificationService.markAsRead(params.id, auth);
+      const { id } = await params;
+      await NotificationService.markAsRead(id, auth);
     }
 
     return NextResponse.json({ success: true });
@@ -35,7 +36,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
@@ -43,7 +44,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await NotificationService.deleteNotification(params.id, auth);
+    const { id } = await params;
+    await NotificationService.deleteNotification(id, auth);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

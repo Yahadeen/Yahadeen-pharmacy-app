@@ -13,6 +13,7 @@
 import {
   DELIVERY_BASE_FEE_KOBO,
   FREE_DELIVERY_THRESHOLD_KOBO,
+  type Address,
   type AddressSnapshot,
   type AppNotification,
   type Category,
@@ -36,6 +37,8 @@ export const demoStaff: Profile = {
   email: 'tunde.bakare@yahadeen.ng',
   phone: '08055512340',
   avatar_url: null,
+  date_of_birth: null,
+  preferred_payment_method: null,
   is_active: true,
   created_at: daysAgo(210),
 };
@@ -105,45 +108,51 @@ const CUSTOMERS = [
   { id: 'cu6', full_name: 'Chioma Eze', phone: '08144556677' },
 ];
 
-const ADDRESSES: AddressSnapshot[] = [
+const ADDRESSES: Address[] = [
   {
     id: 'a1',
-    label: 'Home',
-    recipient_name: 'Ada Okafor',
+    user_id: 'cu1',
+    full_name: 'Ada Okafor',
     phone: '08031234567',
-    line1: '14B Admiralty Way',
-    line2: 'Flat 3',
+    address_line1: '14B Admiralty Way',
+    address_line2: 'Flat 3',
     city: 'Lekki Phase 1',
     state: 'Lagos',
-    landmark: 'Opposite Circle Mall',
-    lat: 6.4413,
-    lng: 3.4712,
+    postal_code: null,
+    country: 'Nigeria',
+    is_default: true,
+    created_at: daysAgo(210),
+    updated_at: daysAgo(210),
   },
   {
     id: 'a2',
-    label: 'Office',
-    recipient_name: 'Emeka Nwosu',
+    user_id: 'cu2',
+    full_name: 'Emeka Nwosu',
     phone: '08067788990',
-    line1: '5 Ligali Ayorinde Street',
-    line2: null,
+    address_line1: '5 Ligali Ayorinde Street',
+    address_line2: null,
     city: 'Victoria Island',
     state: 'Lagos',
-    landmark: 'Beside Zenith Bank',
-    lat: 6.4315,
-    lng: 3.4295,
+    postal_code: null,
+    country: 'Nigeria',
+    is_default: true,
+    created_at: daysAgo(210),
+    updated_at: daysAgo(210),
   },
   {
     id: 'a3',
-    label: 'Home',
-    recipient_name: 'Fatima Bello',
+    user_id: 'cu3',
+    full_name: 'Fatima Bello',
     phone: '07012223344',
-    line1: '22 Cameron Road',
-    line2: 'Block C',
+    address_line1: '22 Cameron Road',
+    address_line2: 'Block C',
     city: 'Ikoyi',
     state: 'Lagos',
-    landmark: 'Near Falomo Roundabout',
-    lat: 6.4508,
-    lng: 3.4372,
+    postal_code: null,
+    country: 'Nigeria',
+    is_default: true,
+    created_at: daysAgo(210),
+    updated_at: daysAgo(210),
   },
 ];
 
@@ -193,13 +202,28 @@ function build(seed: OrderSeed): OrderDetail {
       pack_size_snapshot: p.pack_size,
       image_url_snapshot: p.image_url,
       unit_price_kobo: p.price_kobo,
-      qty,
+      quantity: qty,
+      total_kobo: p.price_kobo * qty,
+      created_at: minsAgo(seed.ago),
     };
   });
 
-  const subtotal_kobo = items.reduce((n, i) => n + i.unit_price_kobo * i.qty, 0);
+  const subtotal_kobo = items.reduce((n, i) => n + i.unit_price_kobo * i.quantity, 0);
   const delivery_fee_kobo =
     subtotal_kobo >= FREE_DELIVERY_THRESHOLD_KOBO ? 0 : DELIVERY_BASE_FEE_KOBO;
+
+  const addressSnapshot = {
+    id: ADDRESSES[seed.ai].id,
+    full_name: ADDRESSES[seed.ai].full_name,
+    phone: ADDRESSES[seed.ai].phone,
+    address_line1: ADDRESSES[seed.ai].address_line1,
+    address_line2: ADDRESSES[seed.ai].address_line2,
+    city: ADDRESSES[seed.ai].city,
+    state: ADDRESSES[seed.ai].state,
+    postal_code: ADDRESSES[seed.ai].postal_code,
+    country: ADDRESSES[seed.ai].country,
+    updated_at: ADDRESSES[seed.ai].updated_at,
+  };
 
   return {
     id: seed.id,
@@ -209,7 +233,9 @@ function build(seed: OrderSeed): OrderDetail {
     subtotal_kobo,
     delivery_fee_kobo,
     total_kobo: subtotal_kobo + delivery_fee_kobo,
-    address_snapshot: ADDRESSES[seed.ai],
+    address_id: ADDRESSES[seed.ai].id,
+    address: ADDRESSES[seed.ai],
+    address_snapshot: addressSnapshot,
     note: seed.note ?? null,
     prescription_url: seed.rx ? 'https://example.com/prescription.jpg' : null,
     attendant_id: rank >= 2 ? demoStaff.id : null,
@@ -293,8 +319,8 @@ export const demoOrderSummaries: OrderSummary[] = demoOrders.map((o) => ({
   total_kobo: o.total_kobo,
   created_at: o.created_at,
   customer_id: o.customer_id,
-  item_count: o.items.reduce((n, i) => n + i.qty, 0),
-  preview: o.items.map((i) => i.name_snapshot).join(', '),
+  item_count: o.items.reduce((n, i) => n + i.quantity, 0),
+  preview: o.items.map((i) => i.name_snapshot || i.product?.name || 'Item').join(', '),
   customer_name: o.customer?.full_name ?? null,
 }));
 

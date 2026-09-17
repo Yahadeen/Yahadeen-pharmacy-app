@@ -94,7 +94,7 @@ class MockDeliveryAdapter implements DeliveryAdapter {
     const quote = await this.getQuote(request);
     
     return {
-      delivery_id,
+      delivery_id: deliveryId,
       provider_ref: `REF-${Date.now()}`,
       quote,
     };
