@@ -13,6 +13,7 @@ import {
   Truck,
   Lock,
   Folder,
+  MessageCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Admins', href: '/dashboard/admins', icon: Shield, group: 'Manage', superOnly: true },
   { label: 'Payments', href: '/dashboard/payments', icon: CreditCard, group: 'Manage', scope: 'payments' },
   { label: 'Delivery Fees', href: '/dashboard/delivery-fees', icon: Truck, group: 'Manage', scope: 'delivery_fees' },
+  { label: 'Support', href: '/dashboard/support', icon: MessageCircle, group: 'Manage', scope: 'support' },
   { label: 'Access Control', href: '/dashboard/access-control', icon: Lock, group: 'Manage', superOnly: true },
   { label: 'Reports', href: '/dashboard/reports', icon: FileBarChart, group: 'Insights', scope: 'reports' },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, group: 'Insights', scope: 'notifications' },

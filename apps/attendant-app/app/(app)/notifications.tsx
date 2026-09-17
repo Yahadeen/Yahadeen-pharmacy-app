@@ -217,7 +217,7 @@ export default function Notifications() {
                           )}
                         </View>
                         <Text style={[TYPE.caption, styles.body, { color: colors.mutedText }]}>
-                          {row.body}
+                          {row.message}
                         </Text>
                         <View style={styles.metaRow}>
                           <Text style={[TYPE.caption, { color: colors.faintText }]}>

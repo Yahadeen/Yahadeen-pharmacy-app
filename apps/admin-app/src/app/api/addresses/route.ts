@@ -24,10 +24,28 @@ export async function POST(request: NextRequest) {
     const verifiedAuth = requireCustomer(auth);
 
     const body = await request.json();
-    const address = await AddressService.createAddress(
-      { ...body, user_id: verifiedAuth.userId },
-      verifiedAuth
-    );
+    
+    // Validate required fields
+    if (!body.full_name || !body.address_line1 || !body.city || !body.state) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: full_name, address_line1, city, and state are required' 
+      }, { status: 400 });
+    }
+
+    const addressInput = {
+      user_id: verifiedAuth.userId,
+      full_name: body.full_name,
+      phone: body.phone,
+      address_line1: body.address_line1,
+      address_line2: body.address_line2,
+      city: body.city,
+      state: body.state,
+      postal_code: body.postal_code,
+      country: body.country || 'Nigeria',
+      is_default: body.is_default || false
+    };
+
+    const address = await AddressService.createAddress(addressInput, verifiedAuth);
 
     return NextResponse.json(address, { status: 201 });
   } catch (error: any) {

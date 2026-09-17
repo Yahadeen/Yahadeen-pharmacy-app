@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 export interface AuthContext {
   userId: string;
   role: 'customer' | 'attendant' | 'admin' | 'super_admin';
+  email?: string;
 }
 
 export async function getAuthContext(request: NextRequest): Promise<AuthContext | null> {
@@ -23,6 +24,7 @@ export async function getAuthContext(request: NextRequest): Promise<AuthContext 
   return {
     userId: result.userId,
     role: result.role as AuthContext['role'],
+    email: result.email,
   };
 }
 

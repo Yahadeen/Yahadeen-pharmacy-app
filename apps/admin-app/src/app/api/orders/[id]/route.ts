@@ -4,7 +4,7 @@ import { OrderService } from '@/server/services';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
@@ -12,7 +12,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const order = await OrderService.getOrderById(params.id);
+    const { id } = await params;
+    const order = await OrderService.getOrderById(id);
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -32,14 +33,15 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     const verifiedAuth = requireStaff(auth);
 
     const body = await request.json();
-    const order = await OrderService.updateOrderStatus(params.id, body, verifiedAuth);
+    const { id } = await params;
+    const order = await OrderService.updateOrderStatus(id, body, verifiedAuth);
 
     return NextResponse.json(order);
   } catch (error: any) {

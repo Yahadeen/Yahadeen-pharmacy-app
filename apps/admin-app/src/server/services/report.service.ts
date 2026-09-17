@@ -216,12 +216,12 @@ export class ReportService {
           .select('id', { count: 'exact', head: true })
           .lte('quantity', 'low_stock_threshold'),
         supabaseAdmin
-          .from('profiles')
+          .from('users')
           .select('id', { count: 'exact', head: true })
           .eq('role', 'customer')
           .eq('is_active', true),
         supabaseAdmin
-          .from('profiles')
+          .from('users')
           .select('id', { count: 'exact', head: true })
           .eq('role', 'attendant')
           .eq('is_active', true),

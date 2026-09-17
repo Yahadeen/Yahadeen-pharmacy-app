@@ -20,6 +20,7 @@ import {
   type ProductWithStock,
   type Profile,
   type StockMovement,
+  type SupportTicket,
 } from '@pharmago/shared';
 import { api, type StockUpdate } from './api';
 import {
@@ -59,8 +60,8 @@ const summarize = (o: OrderDetail): OrderSummary => ({
   total_kobo: o.total_kobo,
   created_at: o.created_at,
   customer_id: o.customer_id,
-  item_count: o.items.reduce((n, i) => n + i.qty, 0),
-  preview: o.items.map((i) => i.name_snapshot).join(', '),
+  item_count: o.items.reduce((n, i) => n + i.quantity, 0),
+  preview: o.items.map((i) => i.product?.name || i.name_snapshot || 'Item').join(', '),
   customer_name: o.customer?.full_name ?? null,
 });
 
@@ -227,5 +228,12 @@ export const data = {
       if (!n.read_at) notices[i] = { ...n, read_at: iso };
     });
     return settle(undefined);
+  },
+
+  /* -------------------------------------------------- support tickets -- */
+  supportTickets: async (): Promise<SupportTicket[]> => {
+    const result = DEMO_MODE ? settle({ tickets: [] }) : api.support.list();
+    const data = await result;
+    return data.tickets || [];
   },
 };

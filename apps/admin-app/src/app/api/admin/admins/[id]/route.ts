@@ -4,14 +4,14 @@ import { supabaseAdmin } from '@/server/supabase';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     requireSuperAdmin(auth);
 
     const { is_active } = await request.json();
-    const adminId = params.id;
+    const { id: adminId } = await params;
 
     const { error } = await supabaseAdmin
       .from('users')
@@ -35,13 +35,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     requireSuperAdmin(auth);
 
-    const adminId = params.id;
+    const { id: adminId } = await params;
 
     // Check if trying to delete super admin
     const { data: admin } = await supabaseAdmin

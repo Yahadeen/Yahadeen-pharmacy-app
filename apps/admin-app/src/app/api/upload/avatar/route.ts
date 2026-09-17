@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     // Handle both FormData (web) and JSON base64 (mobile) uploads
     if (contentType?.includes('multipart/form-data')) {
       const formData = await request.formData();
-      const uploadedFile = formData.get('file') as File;
+      // @ts-ignore - FormData.get() is available in runtime but TypeScript types are incomplete
+      const uploadedFile = formData.get('file') as File | null;
 
       if (!uploadedFile) {
         return NextResponse.json({ error: 'No file provided' }, { status: 400 });

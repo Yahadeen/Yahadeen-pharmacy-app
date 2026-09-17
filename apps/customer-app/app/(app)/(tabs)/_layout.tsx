@@ -10,6 +10,7 @@ import { FloatingTabBar, type TabItem } from '@/src/components';
 const TABS: TabItem[] = [
   { name: 'index', title: 'Home', icon: 'home' },
   { name: 'orders', title: 'Orders', icon: 'package' },
+  { name: 'support', title: 'Support', icon: 'message-circle' },
   { name: 'account', title: 'Account', icon: 'user' },
 ];
 

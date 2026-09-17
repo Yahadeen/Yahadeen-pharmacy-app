@@ -41,9 +41,9 @@ export function formatNairaCompact(kobo: number): string {
  */
 export interface LineItemLike {
   unit_price_kobo: number;
-  qty: number;
+  quantity: number;
 }
 
 export function subtotalKobo(items: readonly LineItemLike[]): number {
-  return items.reduce((sum, i) => sum + i.unit_price_kobo * i.qty, 0);
+  return items.reduce((sum, i) => sum + i.unit_price_kobo * i.quantity, 0);
 }

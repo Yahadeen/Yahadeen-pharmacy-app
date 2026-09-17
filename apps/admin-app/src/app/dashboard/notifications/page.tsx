@@ -104,9 +104,9 @@ export default function NotificationsPage() {
                     <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                       {notification.title}
                     </div>
-                    {notification.body && (
+                    {notification.message && (
                       <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
-                        {notification.body}
+                        {notification.message}
                       </div>
                     )}
                     <div style={{ fontSize: 12, color: 'var(--text-dim)' }}>

@@ -20,6 +20,7 @@ import type {
   ProductQuery,
   ProductWithStock,
   Profile,
+  SupportTicket,
 } from '@pharmago/shared';
 import { api } from './api';
 import {
@@ -122,13 +123,14 @@ export const data = {
   /* ------------------------------------------------------------ addresses -- */
   addresses: (): Promise<Address[]> => (DEMO_MODE ? settle(demoAddresses) : api.addresses.list()),
 
-  createAddress: (payload: Omit<Address, 'id' | 'user_id' | 'created_at'>): Promise<Address> =>
+  createAddress: (payload: Omit<Address, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Address> =>
     DEMO_MODE
       ? settle({
           ...payload,
           id: `a${Date.now()}`,
           user_id: demoProfile.id,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
       : api.addresses.create(payload),
 
@@ -204,4 +206,11 @@ export const data = {
   /* ---------------------------------------------------- push tokens -- */
   registerPushToken: (token: string, platform: 'ios' | 'android' | 'web'): Promise<void> =>
     DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform),
+
+  /* -------------------------------------------------- support tickets -- */
+  supportTickets: async (): Promise<SupportTicket[]> => {
+    const result = DEMO_MODE ? settle({ tickets: [] }) : api.support.list();
+    const data = await result;
+    return data.tickets || [];
+  },
 };

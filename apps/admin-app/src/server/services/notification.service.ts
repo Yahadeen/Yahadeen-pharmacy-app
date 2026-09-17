@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../supabase';
 import { AuthContext } from '../auth';
+import { sendExpoPushNotificationToUser } from '../expo-push';
 
 export interface Notification {
   id: string;
@@ -21,6 +22,7 @@ export interface CreateNotificationInput {
   title: string;
   message: string;
   data?: any;
+  sendPush?: boolean; // Whether to send push notification
 }
 
 export class NotificationService {
@@ -80,6 +82,21 @@ export class NotificationService {
 
     if (error) {
       throw new Error(`Failed to create notification: ${error.message}`);
+    }
+
+    // Send push notification if requested
+    if (input.sendPush !== false) {
+      try {
+        await sendExpoPushNotificationToUser(
+          input.user_id,
+          input.title,
+          input.message,
+          input.data
+        );
+      } catch (pushError) {
+        console.error('Failed to send push notification:', pushError);
+        // Don't throw error - notification was still created in database
+      }
     }
 
     return data;
@@ -149,7 +166,8 @@ export class NotificationService {
     title: string,
     message: string,
     data?: any,
-    priority: string = 'medium'
+    priority: string = 'medium',
+    sendPush: boolean = true
   ): Promise<void> {
     const notifications = userIds.map((user_id) => ({
       user_id,
@@ -166,6 +184,17 @@ export class NotificationService {
 
     if (error) {
       throw new Error(`Failed to broadcast notifications: ${error.message}`);
+    }
+
+    // Send push notifications to all users
+    if (sendPush) {
+      for (const userId of userIds) {
+        try {
+          await sendExpoPushNotificationToUser(userId, title, message, data);
+        } catch (pushError) {
+          console.error(`Failed to send push notification to user ${userId}:`, pushError);
+        }
+      }
     }
   }
 }

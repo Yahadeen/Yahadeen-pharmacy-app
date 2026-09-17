@@ -42,15 +42,15 @@ export async function registerForPushNotifications() {
       });
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const existingStatus = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+    if (String(existingStatus) !== 'granted') {
+      const requestedStatus = await Notifications.requestPermissionsAsync();
+      finalStatus = requestedStatus;
     }
 
-    if (finalStatus !== 'granted') {
+    if (String(finalStatus) !== 'granted') {
       console.error('Failed to get push token for push notification!');
       return null;
     }
@@ -99,7 +99,7 @@ export function setupNotificationListeners() {
       // Handle notification tap - navigate to relevant screen
       const data = response.notification.request.content.data;
       
-      if (data.order_id) {
+      if (data?.order_id) {
         // Navigate to order details
         // This would use your navigation library
         console.log('Navigate to order:', data.order_id);

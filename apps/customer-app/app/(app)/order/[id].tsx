@@ -14,11 +14,12 @@ import {
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
-import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   BrandGradient,
+  ConfirmModal,
   DetailRow,
   Divider,
   EmptyState,
@@ -36,9 +37,10 @@ import { data } from '@/src/lib/data';
 import { useCart } from '@/src/state/CartProvider';
 import { useToast } from '@/src/state/ToastProvider';
 import { useTheme } from '@/src/theme';
+import { supabase } from '@/src/lib/supabase';
 
-/** Statuses a customer may still call off themselves. */
-const CANCELLABLE = ['pending_payment', 'payment_failed', 'paid', 'confirmed'];
+/** Statuses a customer may still call off themselves (before packed stage). */
+const CANCELLABLE = ['pending_payment', 'payment_failed', 'paid', 'confirmed', 'preparing'];
 
 /** `eta` is an ISO timestamp; customers think in minutes. */
 function etaText(iso: string): string {
@@ -56,9 +58,40 @@ export default function OrderDetailScreen() {
   const cart = useCart();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const view = useAsync(() => data.order(id), [id]);
   const order = view.data;
+
+  // Subscribe to realtime order status updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`order:${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          // Reload order data when status changes
+          data.order(id).then(updatedOrder => {
+            if (updatedOrder) {
+              view.setData(updatedOrder);
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.channel(`order:${id}`).unsubscribe();
+    };
+  }, [id]);
 
   if (view.loading) {
     return (
@@ -83,7 +116,7 @@ export default function OrderDetailScreen() {
   }
 
   const meta = ORDER_STATUS_META[order.status];
-  const address = order.address_snapshot;
+  const address = order.address;
   const rider = order.delivery?.rider_name;
   const needsPayment = order.status === 'pending_payment' || order.status === 'payment_failed';
   const finished = order.status === 'delivered' || order.status === 'cancelled';
@@ -91,9 +124,8 @@ export default function OrderDetailScreen() {
   const pay = async () => {
     setBusy(true);
     try {
-      const { payment_url } = await data.retryPayment(order.id);
-      await WebBrowser.openBrowserAsync(payment_url);
-      await view.reload();
+      // Navigate to payment confirmation screen instead of directly to payment
+      router.push(`/(app)/payment-confirm/${order.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not open the payment page.');
     } finally {
@@ -101,30 +133,18 @@ export default function OrderDetailScreen() {
     }
   };
 
-  const cancel = () => {
-    Alert.alert(
-      'Cancel this order?',
-      'The pharmacy will be told, and anything already paid is refunded to your original payment method.',
-      [
-        { text: 'Keep order', style: 'cancel' },
-        {
-          text: 'Cancel order',
-          style: 'destructive',
-          onPress: async () => {
-            setBusy(true);
-            try {
-              await data.cancelOrder(order.id, 'Cancelled by customer');
-              toast.success('Order cancelled.');
-              await view.reload();
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : 'Could not cancel that order.');
-            } finally {
-              setBusy(false);
-            }
-          },
-        },
-      ],
-    );
+  const cancel = async () => {
+    setBusy(true);
+    try {
+      await data.cancelOrder(order.id, 'Cancelled by customer');
+      toast.success('Order cancelled.');
+      setShowCancelModal(false);
+      await view.reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not cancel that order.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const reorder = async () => {
@@ -142,7 +162,7 @@ export default function OrderDetailScreen() {
           skipped += 1;
           continue;
         }
-        cart.add(product, item.qty);
+        cart.add(product, item.quantity);
         added += 1;
       } catch {
         skipped += 1;
@@ -157,6 +177,44 @@ export default function OrderDetailScreen() {
       skipped ? `${added} added — ${skipped} unavailable.` : 'Everything is back in your cart.',
     );
     router.push('/(app)/cart');
+  };
+
+  const handleGetHelp = async () => {
+    setBusy(true);
+    try {
+      // Check if support ticket already exists for this order
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/support/tickets?order_id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const existingTicket = data.tickets?.[0];
+        
+        if (existingTicket) {
+          // Navigate to existing chat
+          router.push(`/(app)/support/${existingTicket.id}`);
+        } else {
+          // Navigate to create new ticket
+          router.push(`/(app)/support/create?orderId=${id}`);
+        }
+      } else {
+        // If API fails, fall back to create screen
+        router.push(`/(app)/support/create?orderId=${id}`);
+      }
+    } catch (error) {
+      console.error('Error checking support ticket:', error);
+      // Fall back to create screen on error
+      router.push(`/(app)/support/create?orderId=${id}`);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -242,11 +300,11 @@ export default function OrderDetailScreen() {
           {order.items.map((item) => (
             <View key={item.id} style={styles.itemGap}>
               <ProductRow
-                name={item.name_snapshot}
-                packSize={item.pack_size_snapshot}
-                imageUrl={item.image_url_snapshot}
+                name={item.product?.name || `Product ${item.product_id}`}
+                packSize={null}
+                imageUrl={item.product?.image_url || null}
                 priceKobo={item.unit_price_kobo}
-                note={`× ${item.qty}`}
+                note={`× ${item.quantity}`}
                 onPress={
                   item.product_id
                     ? () => router.push(`/(app)/product/${item.product_id}`)
@@ -287,13 +345,13 @@ export default function OrderDetailScreen() {
             Delivery address
           </Text>
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[TYPE.label, { color: colors.text }]}>{address.recipient_name}</Text>
+            <Text style={[TYPE.label, { color: colors.text }]}>{address?.full_name}</Text>
             <Text style={[TYPE.body, styles.addressLine, { color: colors.mutedText }]}>
-              {[address.line1, address.line2, address.landmark, address.city, address.state]
+              {[address?.address_line1, address?.address_line2, address?.city, address?.state]
                 .filter(Boolean)
                 .join(', ')}
             </Text>
-            <Text style={[TYPE.caption, { color: colors.faintText }]}>{address.phone}</Text>
+            <Text style={[TYPE.caption, { color: colors.faintText }]}>{address?.phone}</Text>
             {!!order.note && (
               <>
                 <Divider />
@@ -341,20 +399,30 @@ export default function OrderDetailScreen() {
                 icon="x-circle"
                 variant="ghost"
                 disabled={busy}
-                onPress={cancel}
+                onPress={() => setShowCancelModal(true)}
               />
             )}
             <GlassButton
               title="Get help with this order"
               icon="message-circle"
               variant="ghost"
-              onPress={() =>
-                toast.show('Support chat is coming in the next release.', 'info')
-              }
+              onPress={handleGetHelp}
             />
           </View>
         </Entrance>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showCancelModal}
+        title="Cancel this order?"
+        message="The pharmacy will be told, and anything already paid is refunded to your original payment method."
+        confirmText="Cancel order"
+        cancelText="Keep order"
+        destructive
+        onConfirm={cancel}
+        onCancel={() => setShowCancelModal(false)}
+        loading={busy}
+      />
     </SafeAreaView>
   );
 }

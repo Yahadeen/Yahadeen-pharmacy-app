@@ -10,13 +10,13 @@ function requireAdmin(auth: any) {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     requireAdmin(auth);
 
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch the payment details
     const { data: payment, error: paymentError } = await supabaseAdmin

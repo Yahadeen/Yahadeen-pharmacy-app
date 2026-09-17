@@ -80,15 +80,14 @@ export const initPaymentSchema = z.object({
 // Address validation
 export const createAddressSchema = z.object({
   user_id: z.string().uuid(),
-  label: z.string().max(50).optional(),
+  full_name: z.string().min(1).max(255),
+  phone: z.string().max(20).optional(),
   address_line1: z.string().min(1).max(255),
   address_line2: z.string().max(255).optional(),
   city: z.string().min(1).max(100),
   state: z.string().min(1).max(100),
   postal_code: z.string().max(20).optional(),
   country: z.string().max(100).optional(),
-  lat: z.number().optional(),
-  lng: z.number().optional(),
   is_default: z.boolean().optional(),
 });
 
@@ -106,8 +105,8 @@ export const createAttendantSchema = z.object({
 export const createNotificationSchema = z.object({
   user_id: z.string().uuid(),
   title: z.string().min(1).max(255),
-  body: z.string().max(1000).optional(),
-  data: z.record(z.any()).optional(),
+  message: z.string().max(1000).optional(),
+  data: z.record(z.string(), z.any()).optional(),
 });
 
 // Report query validation

@@ -36,12 +36,13 @@ export default function OrdersPage() {
       });
       
       if (!response.ok) {
-        console.error('Failed to fetch orders:', response.status);
+        console.error('Failed to fetch orders:', response.status, response.statusText);
         setOrders([]);
         return;
       }
       
       const data = await response.json();
+      console.log('Orders data:', data);
       setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch orders:', error);

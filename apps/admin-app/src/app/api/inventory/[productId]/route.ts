@@ -4,15 +4,16 @@ import { InventoryService } from '@/server/services';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const auth = await getAuthContext(request);
     const verifiedAuth = requireStaff(auth);
 
     const body = await request.json();
+    const { productId } = await params;
     await InventoryService.updateStock(
-      { product_id: params.productId, ...body },
+      { product_id: productId, ...body },
       verifiedAuth
     );
 

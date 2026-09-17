@@ -349,13 +349,13 @@ CREATE TRIGGER update_push_tokens_updated_at BEFORE UPDATE ON push_tokens
 CREATE OR REPLACE FUNCTION generate_order_code()
 RETURNS TRIGGER AS $$
 DECLARE
-    code VARCHAR(20);
+    order_code VARCHAR(20);
     prefix VARCHAR(10) := 'YD';
 BEGIN
     LOOP
-        code := prefix || '-' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0');
-        IF NOT EXISTS (SELECT 1 FROM orders WHERE code = code) THEN
-            NEW.code := code;
+        order_code := prefix || '-' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0');
+        IF NOT EXISTS (SELECT 1 FROM orders WHERE orders.code = order_code) THEN
+            NEW.code := order_code;
             RETURN NEW;
         END IF;
     END LOOP;

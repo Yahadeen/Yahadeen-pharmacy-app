@@ -121,7 +121,7 @@ export default function OrderDetail() {
   }
 
   const meta = ORDER_STATUS_META[order.status];
-  const address = order.address_snapshot;
+  const address = order.address_snapshot || order.address;
   // Held in a local so the narrowing survives into the onPress closure.
   const rx = order.prescription_url;
   const next = NEXT_STEP[order.status];
@@ -134,6 +134,16 @@ export default function OrderDetail() {
   // Only the pack step is gated — checking items off is pointless once the box
   // is sealed, and blocking a delivery hand-off on it would be theatre.
   const gated = next?.to === 'packed' && !allTicked;
+
+  const call = (phone: string) => void Linking.openURL(`tel:${phone}`);
+
+  // Helper to get address properties regardless of address type
+  const getAddressLine1 = () => address?.address_line1 || '';
+  const getAddressLine2 = () => address?.address_line2 || '';
+  const getCity = () => address?.city || '';
+  const getState = () => address?.state || '';
+  const getPhone = () => address?.phone || '';
+  const getFullName = () => address?.full_name || order.customer?.full_name || '';
 
   const advance = async () => {
     if (!next) return;
@@ -173,8 +183,6 @@ export default function OrderDetail() {
       },
     ]);
   };
-
-  const call = (phone: string) => void Linking.openURL(`tel:${phone}`);
 
   return (
     <SafeAreaView style={[styles.flex, { backgroundColor: colors.background }]}>
@@ -216,17 +224,17 @@ export default function OrderDetail() {
               </View>
               <View style={styles.flex}>
                 <Text numberOfLines={1} style={[TYPE.label, { color: colors.text }]}>
-                  {order.customer?.full_name ?? address.recipient_name}
+                  {getFullName()}
                 </Text>
                 <Text style={[TYPE.caption, styles.tight, { color: colors.mutedText }]}>
-                  {order.customer?.phone ?? address.phone}
+                  {getPhone()}
                 </Text>
               </View>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Call the customer"
                 hitSlop={8}
-                onPress={() => call(order.customer?.phone ?? address.phone)}
+                onPress={() => call(getPhone())}
                 style={[styles.callBtn, { backgroundColor: colors.accentSoft }]}
               >
                 <Feather name="phone" size={16} color={colors.accentText} />
@@ -239,12 +247,11 @@ export default function OrderDetail() {
               <Feather name="map-pin" size={15} color={colors.faintText} />
               <View style={styles.flex}>
                 <Text style={[TYPE.body, { color: colors.text }]}>
-                  {address.line1}
-                  {address.line2 ? `, ${address.line2}` : ''}
+                  {getAddressLine1()}
+                  {getAddressLine2() ? `, ${getAddressLine2()}` : ''}
                 </Text>
                 <Text style={[TYPE.caption, styles.tight, { color: colors.mutedText }]}>
-                  {address.city}, {address.state}
-                  {address.landmark ? ` · ${address.landmark}` : ''}
+                  {getCity()}, {getState()}
                 </Text>
               </View>
             </View>
@@ -306,7 +313,7 @@ export default function OrderDetail() {
                   key={item.id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: on }}
-                  accessibilityLabel={`${item.name_snapshot}, pick ${item.qty}`}
+                  accessibilityLabel={`${item.product?.name || item.name_snapshot || 'Item'}, pick ${item.quantity}`}
                   onPress={() => setChecked((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
                   style={({ pressed }) => [
                     styles.itemRow,
@@ -327,13 +334,13 @@ export default function OrderDetail() {
                   >
                     {on && <Feather name="check" size={13} color={colors.onAccent} />}
                   </View>
-                  <ItemThumb uri={item.image_url_snapshot} />
+                  <ItemThumb uri={item.image_url_snapshot || item.product?.image_url} />
                   <View style={styles.flex}>
                     <Text
                       numberOfLines={2}
                       style={[TYPE.label, on && styles.struck, { color: colors.text }]}
                     >
-                      {item.name_snapshot}
+                      {item.product?.name || item.name_snapshot || 'Item'}
                     </Text>
                     <Text style={[TYPE.caption, styles.tight, { color: colors.mutedText }]}>
                       {item.pack_size_snapshot ? `${item.pack_size_snapshot} · ` : ''}
@@ -341,7 +348,7 @@ export default function OrderDetail() {
                     </Text>
                   </View>
                   <View style={[styles.qtyBox, { backgroundColor: colors.surfaceAlt }]}>
-                    <Text style={[styles.qtyText, { color: colors.text }]}>×{item.qty}</Text>
+                    <Text style={[styles.qtyText, { color: colors.text }]}>×{item.quantity}</Text>
                   </View>
                 </Pressable>
               );
@@ -503,7 +510,7 @@ export default function OrderDetail() {
 }
 
 /** Small square product image, with a pill glyph when the snapshot has no URL. */
-function ItemThumb({ uri }: { uri: string | null }) {
+function ItemThumb({ uri }: { uri: string | null | undefined }) {
   const { colors } = useTheme();
   if (!uri) {
     return (

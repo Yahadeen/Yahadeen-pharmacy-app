@@ -20,6 +20,7 @@ import { useTheme } from '@/src/theme';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
   { key: 'active', label: 'Active' },
   { key: 'past', label: 'Completed' },
 ] as const;
@@ -35,6 +36,7 @@ export default function Orders() {
 
   const visible = useMemo(() => {
     const items = orders.data ?? [];
+    if (filter === 'pending') return items.filter((o) => o.status === 'pending_payment' || o.status === 'payment_failed');
     if (filter === 'active') return items.filter((o) => OPEN_ORDER_STATUSES.includes(o.status));
     if (filter === 'past') {
       return items.filter((o) => o.status === 'delivered' || o.status === 'cancelled');

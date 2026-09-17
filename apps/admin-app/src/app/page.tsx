@@ -1,186 +1,310 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Package, DollarSign, AlertTriangle, BarChart3, Users, Bell, Shield, Zap, Clock, CheckCircle, ArrowRight, Star, TrendingUp } from "lucide-react";
-import "./landing.css";
+import { 
+  Package, 
+  DollarSign, 
+  AlertTriangle, 
+  BarChart3, 
+  Users, 
+  Bell, 
+  Shield, 
+  Zap, 
+  Clock, 
+  CheckCircle, 
+  ArrowRight, 
+  Star, 
+  TrendingUp,
+  Pill,
+  ShoppingCart,
+  Truck,
+  FileText,
+  HeartPulse,
+  Stethoscope,
+  Calendar,
+  MessageSquare,
+  CreditCard,
+  Smartphone,
+  Database,
+  Globe,
+  Lock,
+  Award,
+  Target,
+  Building2,
+  Play,
+  UserPlus
+} from "lucide-react";
 
 export default function AdminDashboard() {
   return (
-    <div id="yahadeen-page" className="relative flex min-h-screen flex-col items-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-sans text-slate-100">
-      {/* Animated Background Orbs */}
-      <div className="fixed top-0 left-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0036B6] opacity-30 blur-[150px] animate-pulse"></div>
-      <div className="fixed bottom-0 right-1/4 h-[700px] w-[700px] translate-x-1/3 translate-y-1/3 rounded-full bg-[#10BF41] opacity-20 blur-[180px] animate-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="fixed top-1/2 left-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-10 blur-[120px]"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
+      </div>
 
-      <main 
-        className="relative z-10 flex w-full max-w-7xl flex-col gap-24 mx-auto"
-        style={{ paddingLeft: '2rem', paddingRight: '2rem', paddingTop: '4rem', paddingBottom: '4rem' }}
-      >
+      <div className="relative z-10">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0036B6] to-[#10BF41] p-3 shadow-2xl">
-              <Image src="/logo.png" width={32} height={32} alt="Yahadeen Logo" className="object-contain" />
+        <header className="border-b border-white/10 backdrop-blur-sm bg-slate-900/50 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center shadow-lg">
+                  <Image src="/logo.png" width={24} height={24} alt="Yahadeen Logo" className="object-contain" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">Yahadeen</h1>
+                  <p className="text-xs text-slate-400">Pharmacy Management</p>
+                </div>
+              </div>
+              <nav className="hidden md:flex items-center gap-8">
+                <Link href="#features" className="text-sm text-slate-300 hover:text-white transition-colors">Features</Link>
+                <Link href="#benefits" className="text-sm text-slate-300 hover:text-white transition-colors">Benefits</Link>
+                <Link href="#testimonials" className="text-sm text-slate-300 hover:text-white transition-colors">Testimonials</Link>
+              </nav>
+              <div className="flex items-center gap-3">
+                <Link 
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  href="/signup"
+                  className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-green-500 rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Get Started
+                </Link>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-wider text-white">Yahadeen</h1>
-              <p className="text-sm text-slate-400">Pharmacy Management System</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <Link 
-              href="/login"
-              className="rounded-full bg-white/10 px-6 py-2.5 font-medium text-white backdrop-blur-md transition-all hover:bg-white/20 hover:scale-105"
-            >
-              Sign In
-            </Link>
-            <Link 
-              href="/signup"
-              className="rounded-full bg-gradient-to-r from-[#0036B6] to-[#10BF41] px-6 py-2.5 font-semibold text-white shadow-lg transition-all hover:scale-105"
-            >
-              Get Started
-            </Link>
           </div>
         </header>
 
         {/* Hero Section */}
-        <section className="flex flex-col items-center text-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-slate-300 backdrop-blur-sm border border-white/10 mb-8">
-            <span className="h-2 w-2 rounded-full bg-[#10BF41] animate-pulse"></span>
-            Trusted by 500+ Pharmacies Across Nigeria
-          </div>
-          <h2 className="mb-6 max-w-4xl text-5xl font-black leading-tight tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Transform Your Pharmacy{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#10BF41] via-emerald-400 to-[#0036B6]">
-              Operations Today
-            </span>
-          </h2>
-          <p className="max-w-2xl text-lg text-slate-400 leading-relaxed mb-8">
-            Streamline inventory management, automate order processing, and deliver exceptional customer service with our all-in-one pharmacy management platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Link 
-              href="/signup" 
-              className="group rounded-full bg-gradient-to-r from-[#0036B6] to-[#10BF41] px-8 py-4 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-blue-500/50 flex items-center gap-2"
-            >
-              Get Started
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link 
-              href="#features" 
-              className="rounded-full bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105"
-            >
-              Learn More
-            </Link>
-          </div>
-          
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-8 sm:gap-16">
-            <StatItem value="500+" label="Pharmacies" />
-            <StatItem value="1M+" label="Orders Processed" />
-            <StatItem value="99.9%" label="Uptime" />
-            <StatItem value="24/7" label="Support" />
+        <section className="py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm text-blue-300">Trusted by 500+ Pharmacies</span>
+                </div>
+                
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                  Modern Pharmacy{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
+                    Management System
+                  </span>
+                </h2>
+                
+                <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+                  Streamline your pharmacy operations with intelligent inventory management, seamless order processing, and comprehensive customer service tools.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link 
+                    href="/signup"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-green-500 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link 
+                    href="#features"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 border border-white/20 rounded-lg font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    <Play className="w-4 h-4" />
+                    Watch Demo
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/10">
+                  <div>
+                    <div className="text-2xl font-bold text-white">500+</div>
+                    <div className="text-sm text-slate-400">Pharmacies</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-white">1M+</div>
+                    <div className="text-sm text-slate-400">Orders</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-white">99.9%</div>
+                    <div className="text-sm text-slate-400">Uptime</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative order-first lg:order-last">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-2xl blur-2xl" />
+                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 space-y-4">
+                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
+                    <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                      <Package className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white truncate">Inventory Status</div>
+                      <div className="text-xs text-slate-400">1,234 items in stock</div>
+                    </div>
+                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+12%</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
+                    <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <ShoppingCart className="w-6 h-6 text-green-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white truncate">Today's Orders</div>
+                      <div className="text-xs text-slate-400">48 orders processed</div>
+                    </div>
+                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+8%</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
+                    <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-6 h-6 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white truncate">Active Customers</div>
+                      <div className="text-xs text-slate-400">2,847 customers</div>
+                    </div>
+                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+15%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-white mb-4">Everything You Need to Succeed</h3>
-            <p className="text-slate-400 max-w-2xl mx-auto">Powerful features designed to help you manage your pharmacy efficiently and grow your business.</p>
+        <section id="features" className="py-16 lg:py-20 bg-slate-800/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-white mb-4">Powerful Features</h3>
+              <p className="text-slate-400 max-w-2xl mx-auto">Everything you need to manage your pharmacy efficiently</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <FeatureCard 
+                icon={<Pill className="w-6 h-6" />}
+                title="Smart Inventory"
+                description="AI-powered stock management with automated reordering and low-stock alerts"
+                color="blue"
+              />
+              <FeatureCard 
+                icon={<ShoppingCart className="w-6 h-6" />}
+                title="Order Management"
+                description="Seamless order processing from prescription to delivery"
+                color="green"
+              />
+              <FeatureCard 
+                icon={<Users className="w-6 h-6" />}
+                title="Customer Portal"
+                description="Mobile app for customers to order and track prescriptions"
+                color="purple"
+              />
+              <FeatureCard 
+                icon={<Stethoscope className="w-6 h-6" />}
+                title="Prescription Handling"
+                description="Secure prescription upload and verification workflow"
+                color="cyan"
+              />
+              <FeatureCard 
+                icon={<BarChart3 className="w-6 h-6" />}
+                title="Analytics Dashboard"
+                description="Real-time insights on sales, inventory, and performance"
+                color="yellow"
+              />
+              <FeatureCard 
+                icon={<Shield className="w-6 h-6" />}
+                title="Compliance Ready"
+                description="Built-in regulatory compliance and audit trails"
+                color="red"
+              />
+            </div>
           </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard 
-              icon={<BarChart3 className="h-8 w-8" />}
-              title="Real-time Analytics"
-              description="Track sales, inventory, and performance with live dashboards and detailed reports."
-              color="blue"
-            />
-            <FeatureCard 
-              icon={<Package className="h-8 w-8" />}
-              title="Smart Inventory"
-              description="Automated stock tracking, low-stock alerts, and predictive ordering to never run out."
-              color="green"
-            />
-            <FeatureCard 
-              icon={<Users className="h-8 w-8" />}
-              title="Staff Management"
-              description="Schedule shifts, track performance, and manage permissions for your team."
-              color="purple"
-            />
-            <FeatureCard 
-              icon={<Zap className="h-8 w-8" />}
-              title="Lightning Fast"
-              description="Optimized performance ensures your operations run smoothly even during peak hours."
-              color="yellow"
-            />
-            <FeatureCard 
-              icon={<Shield className="h-8 w-8" />}
-              title="Bank-Grade Security"
-              description="End-to-end encryption and role-based access protect your sensitive data."
-              color="red"
-            />
-            <FeatureCard 
-              icon={<Clock className="h-8 w-8" />}
-              title="24/7 Availability"
-              description="Cloud-based platform accessible anytime, anywhere on any device."
-              color="cyan"
-            />
+        </section>
+
+        {/* How It Works */}
+        <section className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-white mb-4">How It Works</h3>
+              <p className="text-slate-400 max-w-2xl mx-auto">Get started in minutes with our simple setup process</p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <StepCard 
+                number="1"
+                title="Sign Up"
+                description="Create your account and configure your pharmacy profile"
+                icon={<UserPlus className="w-8 h-8" />}
+              />
+              <StepCard 
+                number="2"
+                title="Add Products"
+                description="Import your inventory or add products manually"
+                icon={<Package className="w-8 h-8" />}
+              />
+              <StepCard 
+                number="3"
+                title="Start Selling"
+                description="Begin accepting orders and managing customers"
+                icon={<Zap className="w-8 h-8" />}
+              />
+            </div>
           </div>
         </section>
 
         {/* Benefits Section */}
-        <section className="bg-white/5 rounded-3xl p-10 backdrop-blur-sm border border-white/10">
-          <div className="grid sm:grid-cols-2 gap-12 items-center">
-            <div>
-              <h3 className="text-3xl font-bold text-white mb-6">Why Choose Yahadeen?</h3>
-              <div className="space-y-4">
-                <BenefitItem 
-                  icon={<CheckCircle className="h-5 w-5 text-[#10BF41]" />}
-                  title="Increase Revenue by 30%"
-                  description="Optimize pricing and inventory to maximize your profit margins."
-                />
-                <BenefitItem 
-                  icon={<CheckCircle className="h-5 w-5 text-[#10BF41]" />}
-                  title="Reduce Errors by 90%"
-                  description="Automated processes minimize human error in prescription handling."
-                />
-                <BenefitItem 
-                  icon={<CheckCircle className="h-5 w-5 text-[#10BF41]" />}
-                  title="Save 20 Hours Weekly"
-                  description="Streamlined workflows free up your time for patient care."
-                />
-                <BenefitItem 
-                  icon={<CheckCircle className="h-5 w-5 text-[#10BF41]" />}
-                  title="Improve Customer Satisfaction"
-                  description="Faster service and accurate orders build customer loyalty."
-                />
-              </div>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0036B6] to-[#10BF41] rounded-2xl blur-2xl opacity-30"></div>
-              <div className="relative bg-slate-800 rounded-2xl p-8 border border-white/10">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#10BF41]/20">
-                    <TrendingUp className="h-6 w-6 text-[#10BF41]" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-400">Average Growth</p>
-                    <p className="text-2xl font-bold text-white">+45%</p>
-                  </div>
+        <section id="benefits" className="py-16 lg:py-20 bg-slate-800/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-6">Why Choose Yahadeen?</h3>
+                <div className="space-y-6">
+                  <BenefitItem 
+                    icon={<TrendingUp className="w-5 h-5 text-green-500" />}
+                    title="Increase Revenue by 30%"
+                    description="Optimize pricing and inventory to maximize profit margins"
+                  />
+                  <BenefitItem 
+                    icon={<Shield className="w-5 h-5 text-blue-500" />}
+                    title="Reduce Errors by 90%"
+                    description="Automated processes minimize human error in prescriptions"
+                  />
+                  <BenefitItem 
+                    icon={<Clock className="w-5 h-5 text-purple-500" />}
+                    title="Save 20 Hours Weekly"
+                    description="Streamlined workflows free up time for patient care"
+                  />
+                  <BenefitItem 
+                    icon={<HeartPulse className="w-5 h-5 text-red-500" />}
+                    title="Improve Patient Care"
+                    description="Focus on what matters most - your patients' health"
+                  />
                 </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Revenue</span>
-                    <span className="text-green-400 font-semibold">+32%</span>
+              </div>
+              
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-2xl blur-2xl" />
+                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center flex-shrink-0">
+                      <Award className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-400">Average Growth</div>
+                      <div className="text-3xl font-bold text-white">+45%</div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Orders</span>
-                    <span className="text-green-400 font-semibold">+28%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Customers</span>
-                    <span className="text-green-400 font-semibold">+41%</span>
+                  
+                  <div className="space-y-4">
+                    <GrowthMetric label="Revenue" value="+32%" color="blue" />
+                    <GrowthMetric label="Orders" value="+28%" color="green" />
+                    <GrowthMetric label="Customers" value="+41%" color="purple" />
+                    <GrowthMetric label="Efficiency" value="+35%" color="cyan" />
                   </div>
                 </div>
               </div>
@@ -189,49 +313,54 @@ export default function AdminDashboard() {
         </section>
 
         {/* Testimonials */}
-        <section style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-white mb-4">Loved by Pharmacy Owners</h3>
-            <p className="text-slate-400">See what our customers have to say about Yahadeen.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <TestimonialCard 
-              name="Dr. Adeola Johnson"
-              role="Owner, HealthPlus Pharmacy"
-              content="Yahadeen transformed how we manage our inventory. We've reduced stockouts by 80% and increased our revenue significantly."
-              rating={5}
-            />
-            <TestimonialCard 
-              name="Chukwuemeka Okafor"
-              role="Manager, MedCare Pharmacy"
-              content="The staff management features are incredible. Scheduling and tracking performance has never been easier."
-              rating={5}
-            />
-            <TestimonialCard 
-              name="Fatima Ibrahim"
-              role="Director, Wellness Pharmacy"
-              content="Customer satisfaction has improved dramatically since we started using Yahadeen. The order processing is seamless."
-              rating={5}
-            />
+        <section id="testimonials" className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-white mb-4">Trusted by Pharmacy Owners</h3>
+              <p className="text-slate-400 max-w-2xl mx-auto">See what our customers have to say about Yahadeen</p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <TestimonialCard 
+                name="Dr. Adeola Johnson"
+                role="Owner, HealthPlus Pharmacy"
+                content="Yahadeen transformed our operations. We've reduced stockouts by 80% and increased revenue significantly."
+                rating={5}
+              />
+              <TestimonialCard 
+                name="Chukwuemeka Okafor"
+                role="Manager, MedCare Pharmacy"
+                content="The staff management features are incredible. Scheduling and performance tracking has never been easier."
+                rating={5}
+              />
+              <TestimonialCard 
+                name="Fatima Ibrahim"
+                role="Director, Wellness Pharmacy"
+                content="Customer satisfaction improved dramatically. The order processing is seamless and efficient."
+                rating={5}
+              />
+            </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="text-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-          <div className="max-w-3xl mx-auto">
+        <section className="py-20 bg-gradient-to-r from-blue-600/20 to-green-600/20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h3 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Pharmacy?</h3>
-            <p className="text-slate-400 mb-8">Join hundreds of pharmacies already using Yahadeen to grow their business.</p>
+            <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
+              Join hundreds of pharmacies already using Yahadeen to streamline operations and grow their business.
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/signup" 
-                className="group rounded-full bg-gradient-to-r from-[#0036B6] to-[#10BF41] px-8 py-4 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-blue-500/50 flex items-center justify-center gap-2"
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-green-500 rounded-lg font-semibold hover:opacity-90 transition-opacity"
               >
-                Get Started
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                Start Free Trial
+                <ArrowRight className="w-5 h-5" />
               </Link>
               <Link 
-                href="/login" 
-                className="rounded-full bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105"
+                href="/login"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 border border-white/20 rounded-lg font-semibold hover:bg-white/20 transition-colors"
               >
                 Sign In
               </Link>
@@ -240,24 +369,55 @@ export default function AdminDashboard() {
         </section>
 
         {/* Footer */}
-        <footer className="py-8 text-center text-sm text-slate-500 border-t border-white/10">
-          <p>&copy; {new Date().getFullYear()} Yahadeen. All rights reserved.</p>
-          <div className="flex justify-center gap-6 mt-4">
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+        <footer className="py-12 border-t border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-4 gap-8 mb-8">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center">
+                    <Image src="/logo.png" width={20} height={20} alt="Yahadeen Logo" className="object-contain" />
+                  </div>
+                  <span className="font-bold text-white">Yahadeen</span>
+                </div>
+                <p className="text-sm text-slate-400">Modern pharmacy management for the digital age.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-white mb-4">Product</h4>
+                <ul className="space-y-2 text-sm text-slate-400">
+                  <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
+                  <li><Link href="#benefits" className="hover:text-white transition-colors">Benefits</Link></li>
+                  <li><Link href="#testimonials" className="hover:text-white transition-colors">Testimonials</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Pricing</Link></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-white mb-4">Company</h4>
+                <ul className="space-y-2 text-sm text-slate-400">
+                  <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Blog</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-white mb-4">Legal</h4>
+                <ul className="space-y-2 text-sm text-slate-400">
+                  <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                  <li><Link href="#" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="pt-8 border-t border-white/10 text-center text-sm text-slate-400">
+              <p>&copy; {new Date().getFullYear()} Yahadeen. All rights reserved.</p>
+            </div>
           </div>
         </footer>
-      </main>
-    </div>
-  );
-}
-
-function StatItem({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <div className="text-3xl font-bold text-white">{value}</div>
-      <div className="text-sm text-slate-400">{label}</div>
+      </div>
     </div>
   );
 }
@@ -266,33 +426,53 @@ function FeatureCard({ icon, title, description, color }: {
   icon: React.ReactNode; 
   title: string; 
   description: string;
-  color: 'blue' | 'green' | 'purple' | 'yellow' | 'red' | 'cyan';
+  color: 'blue' | 'green' | 'purple' | 'cyan' | 'yellow' | 'red';
 }) {
   const colorClasses = {
-    blue: 'border-blue-500/30 shadow-blue-500/10 hover:shadow-blue-500/20',
-    green: 'border-green-500/30 shadow-green-500/10 hover:shadow-green-500/20',
-    purple: 'border-purple-500/30 shadow-purple-500/10 hover:shadow-purple-500/20',
-    yellow: 'border-yellow-500/30 shadow-yellow-500/10 hover:shadow-yellow-500/20',
-    red: 'border-red-500/30 shadow-red-500/10 hover:shadow-red-500/20',
-    cyan: 'border-cyan-500/30 shadow-cyan-500/10 hover:shadow-cyan-500/20'
+    blue: 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40',
+    green: 'bg-green-500/10 border-green-500/20 hover:border-green-500/40',
+    purple: 'bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40',
+    cyan: 'bg-cyan-500/10 border-cyan-500/20 hover:border-cyan-500/40',
+    yellow: 'bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/40',
+    red: 'bg-red-500/10 border-red-500/20 hover:border-red-500/40'
   };
 
   const iconColor = {
     blue: 'text-blue-400',
     green: 'text-green-400',
     purple: 'text-purple-400',
+    cyan: 'text-cyan-400',
     yellow: 'text-yellow-400',
-    red: 'text-red-400',
-    cyan: 'text-cyan-400'
+    red: 'text-red-400'
   };
 
   return (
-    <div className={`flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-xl transition-all hover:bg-white/10 hover:scale-105 ${colorClasses[color]}`}>
-      <div className={`p-3 rounded-xl bg-white/5 ${iconColor[color]}`}>
+    <div className={`p-6 rounded-xl border ${colorClasses[color]} hover:bg-slate-700/50 transition-all group`}>
+      <div className={`w-12 h-12 rounded-lg ${iconColor[color]} bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
         {icon}
       </div>
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <h4 className="text-lg font-semibold text-white mb-2">{title}</h4>
+      <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function StepCard({ number, title, description, icon }: { 
+  number: string;
+  title: string; 
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-sm font-bold text-white z-10">
+        {number}
+      </div>
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6 pt-8">
+        <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center mb-4 text-slate-300">
+          {icon}
+        </div>
+        <h4 className="text-lg font-semibold text-white mb-2">{title}</h4>
         <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
       </div>
     </div>
@@ -306,11 +486,33 @@ function BenefitItem({ icon, title, description }: {
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 mt-1">{icon}</div>
-      <div>
-        <h4 className="font-semibold text-white mb-1">{title}</h4>
-        <p className="text-sm text-slate-400">{description}</p>
+      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
+        {icon}
       </div>
+      <div className="flex-1">
+        <h4 className="font-semibold text-white mb-1">{title}</h4>
+        <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function GrowthMetric({ label, value, color }: { 
+  label: string; 
+  value: string;
+  color: 'blue' | 'green' | 'purple' | 'cyan';
+}) {
+  const colorClasses = {
+    blue: 'text-blue-400',
+    green: 'text-green-400',
+    purple: 'text-purple-400',
+    cyan: 'text-cyan-400'
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+      <span className="text-sm text-slate-300">{label}</span>
+      <span className={`text-sm font-semibold ${colorClasses[color]}`}>{value}</span>
     </div>
   );
 }
@@ -322,13 +524,13 @@ function TestimonialCard({ name, role, content, rating }: {
   rating: number;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-xl">
-      <div className="flex gap-1">
+    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+      <div className="flex gap-1 mb-4">
         {[...Array(rating)].map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         ))}
       </div>
-      <p className="text-slate-300 leading-relaxed">{content}</p>
+      <p className="text-slate-300 leading-relaxed mb-4">{content}</p>
       <div>
         <p className="font-semibold text-white">{name}</p>
         <p className="text-sm text-slate-400">{role}</p>
@@ -336,3 +538,4 @@ function TestimonialCard({ name, role, content, rating }: {
     </div>
   );
 }
+
