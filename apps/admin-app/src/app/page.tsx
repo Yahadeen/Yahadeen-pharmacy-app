@@ -1,518 +1,374 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  Package, 
-  DollarSign, 
-  AlertTriangle, 
-  BarChart3, 
-  Users, 
-  Bell, 
-  Shield, 
-  Zap, 
-  Clock, 
-  CheckCircle, 
-  ArrowRight, 
-  Star, 
-  TrendingUp,
-  Pill,
-  ShoppingCart,
-  Truck,
-  FileText,
-  HeartPulse,
-  Stethoscope,
-  Calendar,
-  MessageSquare,
-  CreditCard,
-  Smartphone,
-  Database,
-  Globe,
-  Lock,
-  Award,
-  Target,
-  Building2,
-  Play,
-  UserPlus
-} from "lucide-react";
+import { ArrowRight, Package, ShoppingCart, Users, Shield, BarChart3, Lock, Truck, FileText, Bell, Zap } from "lucide-react";
 
 export default function AdminDashboard() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans">
-      {/* Background Effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-white/10 backdrop-blur-sm bg-slate-900/50 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center shadow-lg">
-                  <Image src="/logo.png" width={24} height={24} alt="Yahadeen Logo" className="object-contain" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white">Yahadeen</h1>
-                  <p className="text-xs text-slate-400">Pharmacy Management</p>
-                </div>
-              </div>
-              <nav className="hidden md:flex items-center gap-8">
-                <Link href="#features" className="text-sm text-slate-300 hover:text-white transition-colors">Features</Link>
-                <Link href="#benefits" className="text-sm text-slate-300 hover:text-white transition-colors">Benefits</Link>
-                <Link href="#testimonials" className="text-sm text-slate-300 hover:text-white transition-colors">Testimonials</Link>
-              </nav>
-              <div className="flex items-center gap-3">
-                <Link 
-                  href="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  href="/signup"
-                  className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-green-500 rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Get Started
-                </Link>
-              </div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--app-bg)' }}>
+      {/* Header */}
+      <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)', padding: '16px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Image src="/logo.png" width={24} height={24} alt="Yahadeen Logo" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: 'var(--text)' }}>Yahadeen</h1>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Pharmacy Management</p>
             </div>
           </div>
-        </header>
-
-        {/* Hero Section */}
-        <section className="py-16 lg:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm text-blue-300">Trusted by 500+ Pharmacies</span>
-                </div>
-                
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                  Modern Pharmacy{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
-                    Management System
-                  </span>
-                </h2>
-                
-                <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
-                  Streamline your pharmacy operations with intelligent inventory management, seamless order processing, and comprehensive customer service tools.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link 
-                    href="/signup"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-green-500 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                  >
-                    Start Free Trial
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link 
-                    href="#features"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 border border-white/20 rounded-lg font-semibold hover:bg-white/20 transition-colors"
-                  >
-                    <Play className="w-4 h-4" />
-                    Watch Demo
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/10">
-                  <div>
-                    <div className="text-2xl font-bold text-white">500+</div>
-                    <div className="text-sm text-slate-400">Pharmacies</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-white">1M+</div>
-                    <div className="text-sm text-slate-400">Orders</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-white">99.9%</div>
-                    <div className="text-sm text-slate-400">Uptime</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative order-first lg:order-last">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-2xl blur-2xl" />
-                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 space-y-4">
-                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
-                    <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                      <Package className="w-6 h-6 text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">Inventory Status</div>
-                      <div className="text-xs text-slate-400">1,234 items in stock</div>
-                    </div>
-                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+12%</div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
-                    <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                      <ShoppingCart className="w-6 h-6 text-green-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">Today's Orders</div>
-                      <div className="text-xs text-slate-400">48 orders processed</div>
-                    </div>
-                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+8%</div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl">
-                    <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-6 h-6 text-purple-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">Active Customers</div>
-                      <div className="text-xs text-slate-400">2,847 customers</div>
-                    </div>
-                    <div className="text-green-400 text-sm font-medium flex-shrink-0">+15%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Link 
+              href="/login"
+              style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+            >
+              Sign In
+            </Link>
+            <Link 
+              href="/signup"
+              style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--brand)', color: 'white', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+            >
+              Get Started
+            </Link>
           </div>
-        </section>
+        </div>
+      </header>
 
-        {/* Features Section */}
-        <section id="features" className="py-16 lg:py-20 bg-slate-800/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-white mb-4">Powerful Features</h3>
-              <p className="text-slate-400 max-w-2xl mx-auto">Everything you need to manage your pharmacy efficiently</p>
+      {/* Hero Section */}
+      <section style={{ padding: '80px 24px', background: 'var(--surface)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 20, background: 'var(--brand-soft)', border: '1px solid var(--brand)', marginBottom: 24 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />
+              <span style={{ fontSize: 14, color: 'var(--brand)', fontWeight: 600 }}>Trusted by 500+ Pharmacies</span>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <FeatureCard 
-                icon={<Pill className="w-6 h-6" />}
-                title="Smart Inventory"
-                description="AI-powered stock management with automated reordering and low-stock alerts"
-                color="blue"
-              />
-              <FeatureCard 
-                icon={<ShoppingCart className="w-6 h-6" />}
-                title="Order Management"
-                description="Seamless order processing from prescription to delivery"
-                color="green"
-              />
-              <FeatureCard 
-                icon={<Users className="w-6 h-6" />}
-                title="Customer Portal"
-                description="Mobile app for customers to order and track prescriptions"
-                color="purple"
-              />
-              <FeatureCard 
-                icon={<Stethoscope className="w-6 h-6" />}
-                title="Prescription Handling"
-                description="Secure prescription upload and verification workflow"
-                color="cyan"
-              />
-              <FeatureCard 
-                icon={<BarChart3 className="w-6 h-6" />}
-                title="Analytics Dashboard"
-                description="Real-time insights on sales, inventory, and performance"
-                color="yellow"
-              />
-              <FeatureCard 
-                icon={<Shield className="w-6 h-6" />}
-                title="Compliance Ready"
-                description="Built-in regulatory compliance and audit trails"
-                color="red"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-white mb-4">How It Works</h3>
-              <p className="text-slate-400 max-w-2xl mx-auto">Get started in minutes with our simple setup process</p>
-            </div>
+            <h2 style={{ fontSize: 48, fontWeight: 800, margin: '0 0 16px', color: 'var(--text)', lineHeight: 1.2 }}>
+              Modern Pharmacy{' '}
+              <span style={{ color: 'var(--brand)' }}>Management System</span>
+            </h2>
             
-            <div className="grid md:grid-cols-3 gap-8">
-              <StepCard 
-                number="1"
-                title="Sign Up"
-                description="Create your account and configure your pharmacy profile"
-                icon={<UserPlus className="w-8 h-8" />}
-              />
-              <StepCard 
-                number="2"
-                title="Add Products"
-                description="Import your inventory or add products manually"
-                icon={<Package className="w-8 h-8" />}
-              />
-              <StepCard 
-                number="3"
-                title="Start Selling"
-                description="Begin accepting orders and managing customers"
-                icon={<Zap className="w-8 h-8" />}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Benefits Section */}
-        <section id="benefits" className="py-16 lg:py-20 bg-slate-800/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h3 className="text-3xl font-bold text-white mb-6">Why Choose Yahadeen?</h3>
-                <div className="space-y-6">
-                  <BenefitItem 
-                    icon={<TrendingUp className="w-5 h-5 text-green-500" />}
-                    title="Increase Revenue by 30%"
-                    description="Optimize pricing and inventory to maximize profit margins"
-                  />
-                  <BenefitItem 
-                    icon={<Shield className="w-5 h-5 text-blue-500" />}
-                    title="Reduce Errors by 90%"
-                    description="Automated processes minimize human error in prescriptions"
-                  />
-                  <BenefitItem 
-                    icon={<Clock className="w-5 h-5 text-purple-500" />}
-                    title="Save 20 Hours Weekly"
-                    description="Streamlined workflows free up time for patient care"
-                  />
-                  <BenefitItem 
-                    icon={<HeartPulse className="w-5 h-5 text-red-500" />}
-                    title="Improve Patient Care"
-                    description="Focus on what matters most - your patients' health"
-                  />
-                </div>
-              </div>
-              
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-2xl blur-2xl" />
-                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center flex-shrink-0">
-                      <Award className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-slate-400">Average Growth</div>
-                      <div className="text-3xl font-bold text-white">+45%</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <GrowthMetric label="Revenue" value="+32%" color="blue" />
-                    <GrowthMetric label="Orders" value="+28%" color="green" />
-                    <GrowthMetric label="Customers" value="+41%" color="purple" />
-                    <GrowthMetric label="Efficiency" value="+35%" color="cyan" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section id="testimonials" className="py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-white mb-4">Trusted by Pharmacy Owners</h3>
-              <p className="text-slate-400 max-w-2xl mx-auto">See what our customers have to say about Yahadeen</p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              <TestimonialCard 
-                name="Dr. Adeola Johnson"
-                role="Owner, HealthPlus Pharmacy"
-                content="Yahadeen transformed our operations. We've reduced stockouts by 80% and increased revenue significantly."
-                rating={5}
-              />
-              <TestimonialCard 
-                name="Chukwuemeka Okafor"
-                role="Manager, MedCare Pharmacy"
-                content="The staff management features are incredible. Scheduling and performance tracking has never been easier."
-                rating={5}
-              />
-              <TestimonialCard 
-                name="Fatima Ibrahim"
-                role="Director, Wellness Pharmacy"
-                content="Customer satisfaction improved dramatically. The order processing is seamless and efficient."
-                rating={5}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-blue-600/20 to-green-600/20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Pharmacy?</h3>
-            <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
-              Join hundreds of pharmacies already using Yahadeen to streamline operations and grow their business.
+            <p style={{ fontSize: 18, color: 'var(--text-muted)', marginBottom: 32, lineHeight: 1.6, maxWidth: 500 }}>
+              Streamline your pharmacy operations with intelligent inventory management, seamless order processing, and comprehensive customer service tools.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            
+            <div style={{ display: 'flex', gap: 12 }}>
               <Link 
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-green-500 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 8, border: 'none', background: 'var(--brand)', color: 'white', fontSize: 16, fontWeight: 600, textDecoration: 'none' }}
               >
                 Start Free Trial
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight style={{ width: 16, height: 16 }} />
               </Link>
               <Link 
-                href="/login"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 border border-white/20 rounded-lg font-semibold hover:bg-white/20 transition-colors"
+                href="#features"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)', fontSize: 16, fontWeight: 600, textDecoration: 'none' }}
               >
-                Sign In
+                Learn More
               </Link>
             </div>
-          </div>
-        </section>
 
-        {/* Footer */}
-        <footer className="py-12 border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginTop: 32, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center">
-                    <Image src="/logo.png" width={20} height={20} alt="Yahadeen Logo" className="object-contain" />
-                  </div>
-                  <span className="font-bold text-white">Yahadeen</span>
+                <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>500+</div>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Pharmacies</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>1M+</div>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Orders</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>99.9%</div>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Uptime</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--brand)', borderRadius: 16, opacity: 0.1, filter: 'blur(20px)' }} />
+            <div style={{ position: 'relative', background: 'var(--surface-2)', borderRadius: 16, border: '1px solid var(--border)', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: 'var(--surface)', borderRadius: 12 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--brand-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Package style={{ width: 24, height: 24, color: 'var(--brand)' }} />
                 </div>
-                <p className="text-sm text-slate-400">Modern pharmacy management for the digital age.</p>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Inventory Status</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>1,234 items in stock</div>
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--accent)' }}>+12%</div>
               </div>
               
-              <div>
-                <h4 className="font-semibold text-white mb-4">Product</h4>
-                <ul className="space-y-2 text-sm text-slate-400">
-                  <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
-                  <li><Link href="#benefits" className="hover:text-white transition-colors">Benefits</Link></li>
-                  <li><Link href="#testimonials" className="hover:text-white transition-colors">Testimonials</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Pricing</Link></li>
-                </ul>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: 'var(--surface)', borderRadius: 12 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingCart style={{ width: 24, height: 24, color: 'var(--accent)' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Today's Orders</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>48 orders processed</div>
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--accent)' }}>+8%</div>
               </div>
               
-              <div>
-                <h4 className="font-semibold text-white mb-4">Company</h4>
-                <ul className="space-y-2 text-sm text-slate-400">
-                  <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Blog</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
-                </ul>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: 'var(--surface)', borderRadius: 12 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users style={{ width: 24, height: 24, color: 'var(--text-muted)' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Active Customers</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>2,847 customers</div>
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--accent)' }}>+15%</div>
               </div>
-              
-              <div>
-                <h4 className="font-semibold text-white mb-4">Legal</h4>
-                <ul className="space-y-2 text-sm text-slate-400">
-                  <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
-                  <li><Link href="#" className="hover:text-white transition-colors">Cookie Policy</Link></li>
-                </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" style={{ padding: '80px 24px', background: 'var(--app-bg)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <h3 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 12px', color: 'var(--text)' }}>Powerful Features</h3>
+            <p style={{ fontSize: 16, color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto' }}>Everything you need to manage your pharmacy efficiently</p>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+            <FeatureCard 
+              icon={<Package style={{ width: 24, height: 24 }} />}
+              title="Smart Inventory"
+              description="AI-powered stock management with automated reordering and low-stock alerts"
+            />
+            <FeatureCard 
+              icon={<ShoppingCart style={{ width: 24, height: 24 }} />}
+              title="Order Management"
+              description="Seamless order processing from prescription to delivery"
+            />
+            <FeatureCard 
+              icon={<Users style={{ width: 24, height: 24 }} />}
+              title="Customer Portal"
+              description="Mobile app for customers to order and track prescriptions"
+            />
+            <FeatureCard 
+              icon={<Shield style={{ width: 24, height: 24 }} />}
+              title="Prescription Handling"
+              description="Secure prescription upload and verification workflow"
+            />
+            <FeatureCard 
+              icon={<BarChart3 style={{ width: 24, height: 24 }} />}
+              title="Analytics Dashboard"
+              description="Real-time insights on sales, inventory, and performance"
+            />
+            <FeatureCard 
+              icon={<Lock style={{ width: 24, height: 24 }} />}
+              title="Compliance Ready"
+              description="Built-in regulatory compliance and audit trails"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section style={{ padding: '80px 24px', background: 'var(--surface)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <h3 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 12px', color: 'var(--text)' }}>How It Works</h3>
+            <p style={{ fontSize: 16, color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto' }}>Get started in minutes with our simple setup process</p>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
+            <StepCard 
+              number="1"
+              title="Sign Up"
+              description="Create your account and configure your pharmacy profile"
+              icon={<Zap style={{ width: 32, height: 32 }} />}
+            />
+            <StepCard 
+              number="2"
+              title="Add Products"
+              description="Import your inventory or add products manually"
+              icon={<Package style={{ width: 32, height: 32 }} />}
+            />
+            <StepCard 
+              number="3"
+              title="Start Selling"
+              description="Begin accepting orders and managing customers"
+              icon={<Users style={{ width: 32, height: 32 }} />}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section id="benefits" style={{ padding: '80px 24px', background: 'var(--app-bg)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+          <div>
+            <h3 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 24px', color: 'var(--text)' }}>Why Choose Yahadeen?</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <BenefitItem 
+                icon={<ArrowRight style={{ width: 20, height: 20, color: 'var(--accent)' }} />}
+                title="Increase Revenue by 30%"
+                description="Optimize pricing and inventory to maximize profit margins"
+              />
+              <BenefitItem 
+                icon={<Shield style={{ width: 20, height: 20, color: 'var(--brand)' }} />}
+                title="Reduce Errors by 90%"
+                description="Automated processes minimize human error in prescriptions"
+              />
+              <BenefitItem 
+                icon={<Bell style={{ width: 20, height: 20, color: 'var(--surface-3)' }} />}
+                title="Save 20 Hours Weekly"
+                description="Streamlined workflows free up time for patient care"
+              />
+              <BenefitItem 
+                icon={<Lock style={{ width: 20, height: 20, color: 'var(--surface-3)' }} />}
+                title="Improve Patient Care"
+                description="Focus on what matters most - your patients' health"
+              />
+            </div>
+          </div>
+          
+          <div style={{ background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', padding: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
+              <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap style={{ width: 32, height: 32, color: 'white' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 4 }}>Average Growth</div>
+                <div style={{ fontSize: 48, fontWeight: 800, color: 'var(--text)' }}>+45%</div>
               </div>
             </div>
             
-            <div className="pt-8 border-t border-white/10 text-center text-sm text-slate-400">
-              <p>&copy; {new Date().getFullYear()} Yahadeen. All rights reserved.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <GrowthMetric label="Revenue" value="+32%" />
+              <GrowthMetric label="Orders" value="+28%" />
+              <GrowthMetric label="Customers" value="+41%" />
+              <GrowthMetric label="Efficiency" value="+35%" />
             </div>
           </div>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, description, color }: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-  color: 'blue' | 'green' | 'purple' | 'cyan' | 'yellow' | 'red';
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40',
-    green: 'bg-green-500/10 border-green-500/20 hover:border-green-500/40',
-    purple: 'bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40',
-    cyan: 'bg-cyan-500/10 border-cyan-500/20 hover:border-cyan-500/40',
-    yellow: 'bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/40',
-    red: 'bg-red-500/10 border-red-500/20 hover:border-red-500/40'
-  };
-
-  const iconColor = {
-    blue: 'text-blue-400',
-    green: 'text-green-400',
-    purple: 'text-purple-400',
-    cyan: 'text-cyan-400',
-    yellow: 'text-yellow-400',
-    red: 'text-red-400'
-  };
-
-  return (
-    <div className={`p-6 rounded-xl border ${colorClasses[color]} hover:bg-slate-700/50 transition-all group`}>
-      <div className={`w-12 h-12 rounded-lg ${iconColor[color]} bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-        {icon}
-      </div>
-      <h4 className="text-lg font-semibold text-white mb-2">{title}</h4>
-      <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
-function StepCard({ number, title, description, icon }: { 
-  number: string;
-  title: string; 
-  description: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="relative">
-      <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-sm font-bold text-white z-10">
-        {number}
-      </div>
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6 pt-8">
-        <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center mb-4 text-slate-300">
-          {icon}
         </div>
-        <h4 className="text-lg font-semibold text-white mb-2">{title}</h4>
-        <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+      </section>
+
+      {/* CTA Section */}
+      <section style={{ padding: '80px 24px', background: 'var(--brand)', textAlign: 'center' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <h3 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 16px', color: 'white' }}>Ready to Transform Your Pharmacy?</h3>
+          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.8)', marginBottom: 32, maxWidth: 600, margin: '0 auto 32px' }}>
+            Join hundreds of pharmacies already using Yahadeen to streamline operations and grow their business.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <Link 
+              href="/signup"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '16px 32px', borderRadius: 8, border: 'none', background: 'white', color: 'var(--brand)', fontSize: 16, fontWeight: 600, textDecoration: 'none' }}
+            >
+              Start Free Trial
+              <ArrowRight style={{ width: 20, height: 20 }} />
+            </Link>
+            <Link 
+              href="/login"
+              style={{ padding: '16px 32px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: 'white', fontSize: 16, fontWeight: 600, textDecoration: 'none' }}
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={{ padding: '48px 24px', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32, marginBottom: 32 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image src="/logo.png" width={20} height={20} alt="Yahadeen Logo" />
+              </div>
+              <span style={{ fontWeight: 700, color: 'var(--text)' }}>Yahadeen</span>
+            </div>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Modern pharmacy management for the digital age.</p>
+          </div>
+          
+          <div>
+            <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Product</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="#features" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Features</Link></li>
+              <li><Link href="#benefits" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Benefits</Link></li>
+              <li><Link href="#" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Pricing</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Company</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="#" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>About</Link></li>
+              <li><Link href="#" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Contact</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Legal</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="#" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy Policy</Link></li>
+              <li><Link href="#" style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms of Service</Link></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: 32, borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: 0 }}>© 2026 Yahadeen. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--brand-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--brand)' }}>{icon}</div>
+      </div>
+      <div>
+        <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{title}</h4>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{description}</p>
       </div>
     </div>
   );
 }
 
-function BenefitItem({ icon, title, description }: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-}) {
+function StepCard({ number, title, description, icon }: { number: string, title: string, description: string, icon: React.ReactNode }) {
   return (
-    <div className="flex gap-4">
-      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <span style={{ fontSize: 32, fontWeight: 800, color: 'white' }}>{number}</span>
+      </div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ color: 'var(--text-muted)' }}>{icon}</div>
+      </div>
+      <h4 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{title}</h4>
+      <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{description}</p>
+    </div>
+  );
+}
+
+function BenefitItem({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </div>
-      <div className="flex-1">
-        <h4 className="font-semibold text-white mb-1">{title}</h4>
-        <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+      <div>
+        <h4 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{title}</h4>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{description}</p>
       </div>
     </div>
   );
 }
 
-function GrowthMetric({ label, value, color }: { 
-  label: string; 
-  value: string;
-  color: 'blue' | 'green' | 'purple' | 'cyan';
-}) {
-  const colorClasses = {
-    blue: 'text-blue-400',
-    green: 'text-green-400',
-    purple: 'text-purple-400',
-    cyan: 'text-cyan-400'
-  };
-
+function GrowthMetric({ label, value }: { label: string, value: string }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-      <span className="text-sm text-slate-300">{label}</span>
-      <span className={`text-sm font-semibold ${colorClasses[color]}`}>{value}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--surface-2)', borderRadius: 8 }}>
+      <span style={{ fontSize: 14, color: 'var(--text)' }}>{label}</span>
+      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)' }}>{value}</span>
     </div>
   );
 }
