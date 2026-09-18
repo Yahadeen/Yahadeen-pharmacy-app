@@ -6,6 +6,10 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ENV": "development",
+        "EXPO_PUBLIC_EXPO_PROJECT_ID": "32382f78-5b52-4447-8ccf-a8b41a13aca0"
+      },
       "ios": {
         "simulator": true
       },
@@ -15,12 +19,20 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ENV": "staging",
+        "EXPO_PUBLIC_EXPO_PROJECT_ID": "32382f78-5b52-4447-8ccf-a8b41a13aca0"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "distribution": "store"
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_ENV": "production",
+        "EXPO_PUBLIC_EXPO_PROJECT_ID": "32382f78-5b52-4447-8ccf-a8b41a13aca0"
+      }
     }
   },
   "submit": {
