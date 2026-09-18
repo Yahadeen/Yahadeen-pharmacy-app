@@ -117,8 +117,12 @@ export const data = {
   uploadAvatar: (fileUri: string): Promise<{ url: string; id: string }> =>
     DEMO_MODE ? settle({ url: fileUri, id: 'demo' }) : api.me.uploadAvatar(fileUri),
 
-  registerPushToken: (token: string, platform: 'ios' | 'android' | 'web'): Promise<void> =>
-    DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform),
+  registerPushToken: (
+    token: string,
+    platform: 'ios' | 'android' | 'web',
+    deviceInfo?: Record<string, unknown>,
+  ): Promise<void> =>
+    DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform, deviceInfo),
 
   /* ---------------------------------------------------------------- queue -- */
   orders: (

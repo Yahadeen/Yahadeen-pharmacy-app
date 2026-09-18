@@ -130,10 +130,14 @@ export const api = {
     get: () => request<Profile>('/api/me'),
     update: (patch: Partial<Pick<Profile, 'full_name' | 'phone' | 'avatar_url' | 'date_of_birth' | 'preferred_payment_method'>>) =>
       request<Profile>('/api/me', { method: 'PATCH', body: JSON.stringify(patch) }),
-    registerPushToken: (token: string, platform: 'ios' | 'android' | 'web') =>
-      request<void>('/api/me/push-token', {
+    registerPushToken: (
+      token: string,
+      platform: 'ios' | 'android' | 'web',
+      deviceInfo?: Record<string, unknown>,
+    ) =>
+      request<void>('/api/push/tokens', {
         method: 'POST',
-        body: JSON.stringify({ token, platform }),
+        body: JSON.stringify({ token, platform, device_info: deviceInfo ?? {} }),
       }),
     uploadAvatar: async (fileUri: string): Promise<{ url: string; id: string }> => {
       if (!BASE_URL) {

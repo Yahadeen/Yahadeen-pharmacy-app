@@ -93,8 +93,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
     try {
       // Dynamic import to avoid Expo Go errors
       const Notifications = await import('expo-notifications');
+      const Device = await import('expo-device');
       const ConstantsModule = await import('expo-constants');
       const expoConstants = ConstantsModule.default as ExpoConstantsWithProjectId;
+
+      if (!Device.isDevice) {
+        console.log('Push notifications require a physical device');
+        return;
+      }
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('queue', {
@@ -130,7 +136,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
       const token = await Notifications.getExpoPushTokenAsync({ projectId });
       const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
-      await data.registerPushToken(token.data, platform);
+      await data.registerPushToken(token.data, platform, {
+        platform: Platform.OS,
+        osVersion: Platform.Version,
+        manufacturer: Device.manufacturer,
+        model: Device.modelName,
+      });
     } catch (error) {
       console.warn('Failed to register push token:', error);
       // Non-fatal: the app works without push notifications

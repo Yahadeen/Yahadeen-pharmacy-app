@@ -95,7 +95,7 @@ export async function savePushToken(token: string) {
     const platform = Platform.OS as 'ios' | 'android';
     
     // Call the API to register the push token
-    await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/me/push-token`, {
+    await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/push/tokens`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

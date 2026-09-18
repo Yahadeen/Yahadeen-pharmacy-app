@@ -204,8 +204,12 @@ export const data = {
       : api.uploads.prescriptionUrl(fileName, contentType),
 
   /* ---------------------------------------------------- push tokens -- */
-  registerPushToken: (token: string, platform: 'ios' | 'android' | 'web'): Promise<void> =>
-    DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform),
+  registerPushToken: (
+    token: string,
+    platform: 'ios' | 'android' | 'web',
+    deviceInfo?: Record<string, unknown>,
+  ): Promise<void> =>
+    DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform, deviceInfo),
 
   /* -------------------------------------------------- support tickets -- */
   supportTickets: async (): Promise<SupportTicket[]> => {
