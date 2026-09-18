@@ -6,12 +6,14 @@ import { Feather } from '@expo/vector-icons';
 import { RADIUS, SPACE, TYPE, type OrderStatus, type UserRole } from '@pharmago/shared';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Image, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { ConfirmModal, Entrance, GlassButton, Screen, ScreenHeader, type FeatherName } from '@/src/components';
 import { useAsync } from '@/src/hooks/useAsync';
 import { DEMO_MODE, data } from '@/src/lib/data';
+import { getPushPermissionStatus, requestPushRegistration } from '@/src/lib/push-registration';
 import { useSession } from '@/src/state/SessionProvider';
+import { useToast } from '@/src/state/ToastProvider';
 import { useTheme, type ThemeMode } from '@/src/theme';
 
 const MODES: { key: ThemeMode; label: string; icon: FeatherName }[] = [
@@ -48,8 +50,13 @@ export default function Account() {
   const router = useRouter();
   const { colors, mode, setMode } = useTheme();
   const { profile, user, signOut } = useSession();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushHint, setPushHint] = useState('Checking notification status...');
+  const [activePushToken, setActivePushToken] = useState<string | null>(null);
 
   const orders = useAsync(async () => (await data.orders()).items, []);
   // Order summaries carry no attendant id, so these are counter-wide numbers
@@ -58,6 +65,36 @@ export default function Account() {
   const openNow = all.filter((o) => OPEN_AT_COUNTER.includes(o.status)).length;
   const completed = all.filter((o) => o.status === 'delivered').length;
 
+  const loadPushStatus = useCallback(async () => {
+    try {
+      const [status, permission] = await Promise.all([
+        data.pushTokenStatus(),
+        getPushPermissionStatus(),
+      ]);
+      const token = status.tokens[0]?.token ?? null;
+      const enabled = status.has_active_token && permission === 'granted';
+      setActivePushToken(token);
+      setPushEnabled(enabled);
+      setPushHint(
+        permission === 'unavailable'
+          ? 'Available in installed builds on a physical device'
+          : enabled
+            ? 'Queue alerts can reach this device'
+            : status.has_active_token
+              ? 'Device permission is off'
+              : 'Tap to enable queue alerts',
+      );
+    } catch (error) {
+      console.warn('Failed to load push token status:', error);
+      setPushEnabled(false);
+      setPushHint('Could not check notification status');
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadPushStatus();
+  }, [loadPushStatus]);
+
   const handleSignOut = async () => {
     setBusy(true);
     try {
@@ -65,6 +102,40 @@ export default function Account() {
       setLogoutModalVisible(false);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleTogglePush = async (next: boolean) => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (next) {
+        const registration = await requestPushRegistration();
+        if (!registration) {
+          setPushEnabled(false);
+          setPushHint('Notifications were not granted on this device');
+          toast.error('Notifications were not enabled');
+          return;
+        }
+        await data.registerPushToken(registration.token, registration.platform, registration.deviceInfo);
+        setActivePushToken(registration.token);
+        setPushEnabled(true);
+        setPushHint('Queue alerts can reach this device');
+        toast.success('Push notifications enabled');
+      } else {
+        await data.removePushToken(activePushToken ?? undefined);
+        setActivePushToken(null);
+        setPushEnabled(false);
+        setPushHint('Tap to enable queue alerts');
+        toast.show('Push notifications disabled');
+      }
+      void loadPushStatus();
+    } catch (error) {
+      console.warn('Failed to update push notification setting:', error);
+      toast.error('Could not update notification setting');
+      void loadPushStatus();
+    } finally {
+      setPushBusy(false);
     }
   };
 
@@ -152,17 +223,32 @@ export default function Account() {
       </View>
 
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        {rows.map((row, index) => (
+        <View style={styles.row}>
+          <View style={[styles.rowIcon, { backgroundColor: colors.surfaceAlt }]}>
+            <Feather name="radio" size={17} color={colors.primary} />
+          </View>
+          <View style={styles.flex}>
+            <Text style={[TYPE.label, { color: colors.text }]}>Push notifications</Text>
+            <Text style={[TYPE.caption, styles.rowHint, { color: colors.faintText }]}>
+              {pushHint}
+            </Text>
+          </View>
+          <Switch
+            value={pushEnabled}
+            disabled={pushBusy}
+            onValueChange={handleTogglePush}
+            trackColor={{ false: colors.border, true: colors.primarySoft }}
+            thumbColor={pushEnabled ? colors.primary : colors.surfaceAlt}
+          />
+        </View>
+        {rows.map((row) => (
           <Pressable
             key={row.label}
             accessibilityRole="button"
             onPress={row.onPress}
             style={({ pressed }) => [
               styles.row,
-              index > 0 && {
-                borderTopWidth: StyleSheet.hairlineWidth,
-                borderTopColor: colors.border,
-              },
+              { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
               pressed && { backgroundColor: colors.surfaceAlt },
             ]}
           >

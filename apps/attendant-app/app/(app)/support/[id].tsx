@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, ScrollView, Image, Dimensions, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, ScrollView, Image, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -446,7 +447,7 @@ export default function SupportChatScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.flex, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.background }]}>
       <View style={styles.gutter}>
         <ScreenHeader
           title={ticket?.ticket_number || 'Support Chat'}
@@ -717,7 +718,7 @@ export default function SupportChatScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  gutter: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.lg },
+  gutter: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.xl },
   content: {
     flex: 1,
     justifyContent: 'center',

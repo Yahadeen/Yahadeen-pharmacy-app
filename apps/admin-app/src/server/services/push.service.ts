@@ -30,6 +30,12 @@ export class PushService {
     platform: 'ios' | 'android' | 'web' | 'expo',
     deviceInfo?: any
   ): Promise<PushToken> {
+    await supabaseAdmin
+      .from('push_tokens')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('token', token)
+      .neq('user_id', userId);
+
     const { data, error } = await supabaseAdmin
       .from('push_tokens')
       .upsert({
@@ -57,6 +63,25 @@ export class PushService {
       .eq('token', token);
 
     if (error) throw new Error(`Failed to remove push token: ${error.message}`);
+  }
+
+  static async removeUserToken(userId: string, token: string): Promise<void> {
+    const { error } = await supabaseAdmin
+      .from('push_tokens')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('token', token);
+
+    if (error) throw new Error(`Failed to remove push token: ${error.message}`);
+  }
+
+  static async removeUserTokens(userId: string): Promise<void> {
+    const { error } = await supabaseAdmin
+      .from('push_tokens')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('user_id', userId);
+
+    if (error) throw new Error(`Failed to remove push tokens: ${error.message}`);
   }
 
   /**

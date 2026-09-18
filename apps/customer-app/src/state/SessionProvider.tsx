@@ -14,7 +14,6 @@
  * in the URL and anon key makes the branch dead code and real auth takes over.
  */
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
 import type { Profile } from '@pharmago/shared';
 import type { Session, User } from '@supabase/supabase-js';
 import {
@@ -28,6 +27,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { data } from '@/src/lib/data';
+import { requestPushRegistration } from '@/src/lib/push-registration';
 import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
 
 // Check if running in Expo Go (push notifications not supported in Expo Go on Android)
@@ -59,11 +59,6 @@ const SessionContext = createContext<SessionValue | null>(null);
 const WRONG_APP =
   'That account belongs to pharmacy staff. Please use the Yahadeen Pharm Go Staff app to sign in.';
 
-type ExpoConstantsWithProjectId = typeof Constants & {
-  expoConfig?: { extra?: { eas?: { projectId?: string } } };
-  easConfig?: { projectId?: string };
-};
-
 export function SessionProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [session, setSession] = useState<Session | null>(null);
@@ -88,57 +83,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
     if (DEMO_AUTH || isExpoGo) return;
 
     try {
-      // Dynamic import to avoid Expo Go errors
-      const Notifications = await import('expo-notifications');
-      const Device = await import('expo-device');
-      const ConstantsModule = await import('expo-constants');
-      const expoConstants = ConstantsModule.default as ExpoConstantsWithProjectId;
-
-      if (!Device.isDevice) {
-        console.log('Push notifications require a physical device');
-        return;
-      }
-
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('orders', {
-          name: 'Order updates',
-          importance: Notifications.AndroidImportance.HIGH,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#0036B6',
-        });
-      }
-
-      const permission = await Notifications.getPermissionsAsync();
-      let finalStatus = permission.status;
-      if (finalStatus !== 'granted') {
-        const requested = await Notifications.requestPermissionsAsync();
-        finalStatus = requested.status;
-      }
-
-      if (finalStatus !== 'granted') {
-        console.log('Push notification permission not granted');
-        return;
-      }
-
-      // Get projectId from Constants
-      const projectId =
-        expoConstants.expoConfig?.extra?.eas?.projectId ??
-        expoConstants.easConfig?.projectId ??
-        process.env.EXPO_PUBLIC_EXPO_PROJECT_ID;
-
-      if (!projectId) {
-        console.log('Project ID not found - skipping push token registration');
-        return;
-      }
-
-      const token = await Notifications.getExpoPushTokenAsync({ projectId });
-      const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
-      await data.registerPushToken(token.data, platform, {
-        platform: Platform.OS,
-        osVersion: Platform.Version,
-        manufacturer: Device.manufacturer,
-        model: Device.modelName,
-      });
+      const registration = await requestPushRegistration();
+      if (!registration) return;
+      await data.registerPushToken(registration.token, registration.platform, registration.deviceInfo);
     } catch (error) {
       console.warn('Failed to register push token:', error);
       // Non-fatal: the app works without push notifications

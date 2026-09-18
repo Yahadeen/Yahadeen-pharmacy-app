@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext } from '@/server/auth';
 import { PushService } from '@/server/services/push.service';
 
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getAuthContext(request);
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const tokens = await PushService.getUserTokens(auth.userId);
+    return NextResponse.json({
+      tokens,
+      has_active_token: tokens.length > 0,
+    });
+  } catch (error: any) {
+    console.error('Push token status error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext(request);
@@ -41,14 +59,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { token } = body;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Token is required' }, { status: 400 });
+    if (token) {
+      await PushService.removeUserToken(auth.userId, token);
+    } else {
+      await PushService.removeUserTokens(auth.userId);
     }
-
-    await PushService.removeToken(token);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

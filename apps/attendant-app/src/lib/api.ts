@@ -122,6 +122,11 @@ const qs = (params: Record<string, string | number | boolean | undefined>) => {
   return s ? `?${s}` : '';
 };
 
+export type PushTokenStatus = {
+  tokens: Array<{ id: string; token: string; platform: 'ios' | 'android' | 'web' | 'expo'; is_active: boolean }>;
+  has_active_token: boolean;
+};
+
 /** Body of a stock write. `quantity` is the new absolute count, not a delta. */
 export type StockUpdate = {
   quantity: number;
@@ -143,6 +148,12 @@ export const api = {
       request<void>('/api/push/tokens', {
         method: 'POST',
         body: JSON.stringify({ token, platform, device_info: deviceInfo ?? {} }),
+      }),
+    pushTokenStatus: () => request<PushTokenStatus>('/api/push/tokens'),
+    removePushToken: (token?: string) =>
+      request<void>('/api/push/tokens', {
+        method: 'DELETE',
+        body: JSON.stringify(token ? { token } : {}),
       }),
     uploadAvatar: async (fileUri: string): Promise<{ url: string; id: string }> => {
       if (!BASE_URL) {

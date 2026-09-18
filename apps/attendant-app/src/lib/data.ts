@@ -124,6 +124,12 @@ export const data = {
   ): Promise<void> =>
     DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform, deviceInfo),
 
+  pushTokenStatus: () =>
+    DEMO_MODE ? settle({ tokens: [], has_active_token: false }) : api.me.pushTokenStatus(),
+
+  removePushToken: (token?: string): Promise<void> =>
+    DEMO_MODE ? settle(undefined) : api.me.removePushToken(token),
+
   /* ---------------------------------------------------------------- queue -- */
   orders: (
     params: { status?: string; page?: number } = {},
