@@ -1,18 +1,19 @@
 import { Feather } from '@expo/vector-icons';
 import { BRAND, RADIUS, SPACE } from '@pharmago/shared';
-import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const PERKS = [
-  { icon: 'search', title: 'Find what you need', body: 'Search 2,000+ verified medicines by name or brand.' },
-  { icon: 'camera', title: 'Upload a prescription', body: 'Snap it once — our pharmacist reviews before dispatch.' },
-  { icon: 'map-pin', title: 'Track to your door', body: 'Live status from the counter to your doorstep.' },
+const BENEFITS = [
+  { icon: 'search', title: 'Search', body: 'Verified medicines and wellness items.' },
+  { icon: 'file-text', title: 'Upload', body: 'Prescription review before release.' },
+  { icon: 'truck', title: 'Track', body: 'Live updates from counter to delivery.' },
 ] as const;
+
+const STEPS = ['Paid', 'Review', 'Packed', 'Delivery'];
 
 export default function Welcome() {
   const router = useRouter();
@@ -20,160 +21,321 @@ export default function Welcome() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={[BRAND.blueDeep, BRAND.blue, '#0047D6']}
+        colors={['#F7FAFF', '#EAF2FF', '#ECFBF2']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      {/* Soft colour orbs give the glass something to refract. */}
-      <View style={[styles.orb, styles.orbGreen]} />
-      <View style={[styles.orb, styles.orbCyan]} />
+      <View style={styles.topBand} />
 
       <SafeAreaView style={styles.safe}>
-        <Animated.View entering={FadeIn.duration(500)} style={styles.brand}>
-          <View style={styles.logoTile}>
-            <Image
-              source={require('../../assets/images/logo.png')}
-              style={styles.logo}
-              contentFit="contain"
-            />
-          </View>
-          <Text style={styles.wordmark}>Yahadeen Pharm Go</Text>
-          <Text style={styles.tagline}>Medicine, delivered</Text>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(180).duration(500)}>
-          <BlurView intensity={26} tint="dark" style={styles.card}>
-            <View style={styles.cardOverlay} />
-            <Text style={styles.headline}>Skip the queue.{'\n'}Get it delivered.</Text>
-
-            <View style={styles.perks}>
-              {PERKS.map((perk) => (
-                <View key={perk.title} style={styles.perk}>
-                  <View style={styles.perkIcon}>
-                    <Feather name={perk.icon} size={16} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.perkText}>
-                    <Text style={styles.perkTitle}>{perk.title}</Text>
-                    <Text style={styles.perkBody}>{perk.body}</Text>
-                  </View>
-                </View>
-              ))}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <Animated.View entering={FadeIn.duration(420)} style={styles.brand}>
+            <View style={styles.logoTile}>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logo}
+                contentFit="contain"
+              />
             </View>
+            <Text style={styles.wordmark}>Yahadeen Pharm Go</Text>
+            <Text style={styles.appLabel}>Customer app</Text>
+          </Animated.View>
 
+          <Animated.View entering={FadeInDown.delay(100).duration(520)} style={styles.hero}>
+            <Text style={styles.kicker}>Pharmacy delivery</Text>
+            <Text style={styles.title}>Get your medicines without the queue.</Text>
+            <Text style={styles.subtitle}>
+              Upload prescriptions, confirm payment, and follow every order update in one calm,
+              simple flow.
+            </Text>
+          </Animated.View>
+
+          <Animated.View entering={FadeInUp.delay(190).duration(560)} style={styles.previewShell}>
+            <View style={styles.preview}>
+              <View style={styles.previewHeader}>
+                <View>
+                  <Text style={styles.previewLabel}>Today&apos;s order</Text>
+                  <Text style={styles.previewCode}>YD-482915</Text>
+                </View>
+                <View style={styles.statusPill}>
+                  <View style={styles.statusDot} />
+                  <Text style={styles.statusText}>Preparing</Text>
+                </View>
+              </View>
+
+              <View style={styles.timeline}>
+                {STEPS.map((step, index) => (
+                  <View key={step} style={styles.timelineStep}>
+                    <View style={[styles.stepDot, index < 3 && styles.stepDotDone]}>
+                      {index < 3 ? <Feather name="check" size={12} color="#FFFFFF" /> : null}
+                    </View>
+                    <Text style={[styles.stepText, index < 3 && styles.stepTextDone]}>{step}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.prescriptionRow}>
+                <View style={styles.prescriptionIcon}>
+                  <Feather name="file-text" size={18} color={BRAND.blue} />
+                </View>
+                <View style={styles.prescriptionText}>
+                  <Text style={styles.prescriptionTitle}>Prescription attached</Text>
+                  <Text style={styles.prescriptionBody}>Pharmacist review in progress</Text>
+                </View>
+                <Feather name="shield" size={18} color={BRAND.green} />
+              </View>
+            </View>
+          </Animated.View>
+
+          <View style={styles.benefitGrid}>
+            {BENEFITS.map((benefit, index) => (
+              <Animated.View
+                key={benefit.title}
+                entering={FadeInDown.delay(270 + index * 70).duration(440)}
+                style={styles.benefit}
+              >
+                <View style={styles.benefitIcon}>
+                  <Feather name={benefit.icon} size={18} color={BRAND.blue} />
+                </View>
+                <Text style={styles.benefitTitle}>{benefit.title}</Text>
+                <Text style={styles.benefitBody}>{benefit.body}</Text>
+              </Animated.View>
+            ))}
+          </View>
+
+          <Animated.View entering={FadeInUp.delay(490).duration(520)} style={styles.actions}>
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/(auth)/signup')}
-              style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
-              <Text style={styles.ctaText}>Create an account</Text>
-              <Feather name="arrow-right" size={18} color={BRAND.blueDeep} />
+              <Text style={styles.primaryText}>Create customer account</Text>
+              <Feather name="arrow-right" size={18} color="#FFFFFF" />
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/(auth)/login')}
-              style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
             >
-              <Text style={styles.ghostText}>I already have an account</Text>
+              <Text style={styles.secondaryText}>Sign in</Text>
             </Pressable>
-          </BlurView>
-        </Animated.View>
+          </Animated.View>
 
-        <Text style={styles.legal}>
-          Prescription items are dispensed only after a licensed pharmacist reviews your upload.
-        </Text>
+          <Text style={styles.footer}>Prescription-only items are released after pharmacist review.</Text>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BRAND.blueDeep },
-  safe: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SPACE.xl, paddingBottom: SPACE.lg },
-
-  orb: { position: 'absolute', borderRadius: 999, opacity: 0.28 },
-  orbGreen: { width: 320, height: 320, top: -90, right: -110, backgroundColor: BRAND.green },
-  orbCyan: { width: 260, height: 260, bottom: 120, left: -120, backgroundColor: BRAND.blueGlint },
-
-  brand: { alignItems: 'center', marginTop: SPACE.xxl },
+  root: { flex: 1, backgroundColor: '#F7FAFF' },
+  safe: { flex: 1 },
+  topBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 210,
+    backgroundColor: 'rgba(255,255,255,0.46)',
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+  },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xl,
+    justifyContent: 'center',
+  },
+  brand: { alignItems: 'center' },
   logoTile: {
-    width: 84,
-    height: 84,
-    borderRadius: RADIUS.xl,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.22,
+    borderWidth: 1,
+    borderColor: '#DDE8FA',
+    shadowColor: '#0A2B68',
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    elevation: 5,
   },
-  logo: { width: 66, height: 66 },
-  wordmark: {
-    marginTop: SPACE.md,
-    fontSize: 27,
-    fontWeight: '900',
-    letterSpacing: 1.6,
-    color: '#FFFFFF',
-  },
-  tagline: {
+  logo: { width: 58, height: 58 },
+  wordmark: { marginTop: SPACE.md, fontSize: 20, fontWeight: '900', color: BRAND.blueDeep },
+  appLabel: {
     marginTop: 4,
-    fontSize: 11.5,
-    fontWeight: '700',
-    letterSpacing: 2,
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#6B7890',
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.72)',
   },
-
-  card: {
-    borderRadius: RADIUS.xl,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-    overflow: 'hidden',
-    padding: SPACE.xl,
+  hero: { marginTop: SPACE.xl, alignItems: 'center' },
+  kicker: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: BRAND.green,
+    textTransform: 'uppercase',
   },
-  cardOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(4,18,60,0.34)' },
-  headline: { fontSize: 25, fontWeight: '800', color: '#FFFFFF', lineHeight: 32, letterSpacing: -0.4 },
-
-  perks: { marginTop: SPACE.xl, gap: SPACE.lg },
-  perk: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start' },
-  perkIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.sm,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+  title: {
+    marginTop: SPACE.sm,
+    maxWidth: 330,
+    textAlign: 'center',
+    fontSize: 34,
+    lineHeight: 39,
+    fontWeight: '900',
+    color: BRAND.blueDeep,
+    letterSpacing: 0,
+  },
+  subtitle: {
+    marginTop: SPACE.md,
+    maxWidth: 330,
+    textAlign: 'center',
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '600',
+    color: '#536176',
+  },
+  previewShell: { marginTop: SPACE.xxl, alignItems: 'center' },
+  preview: {
+    width: '100%',
+    maxWidth: 390,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    padding: SPACE.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#DCE8FA',
+    shadowColor: '#18356D',
+    shadowOpacity: 0.12,
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 7,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACE.md,
+  },
+  previewLabel: { fontSize: 12, fontWeight: '800', color: '#718096' },
+  previewCode: { marginTop: 2, fontSize: 22, fontWeight: '900', color: BRAND.blueDeep },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: 8,
+    backgroundColor: '#EAF7F0',
+  },
+  statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: BRAND.green },
+  statusText: { fontSize: 12, fontWeight: '900', color: '#0F8A4B' },
+  timeline: {
+    marginTop: SPACE.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: SPACE.xs,
+  },
+  timelineStep: { flex: 1, alignItems: 'center', gap: 8 },
+  stepDot: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#EFF3F8',
+    borderWidth: 1,
+    borderColor: '#D7E0EA',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  perkText: { flex: 1 },
-  perkTitle: { fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' },
-  perkBody: { marginTop: 2, fontSize: 12.5, fontWeight: '500', lineHeight: 18, color: 'rgba(255,255,255,0.72)' },
-
-  cta: {
-    marginTop: SPACE.xxl,
-    minHeight: 54,
+  stepDotDone: { backgroundColor: BRAND.green, borderColor: BRAND.green },
+  stepText: { fontSize: 11, fontWeight: '800', color: '#8A97A8', textAlign: 'center' },
+  stepTextDone: { color: BRAND.blueDeep },
+  prescriptionRow: {
+    marginTop: SPACE.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.md,
+    padding: SPACE.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#F4F8FF',
+  },
+  prescriptionIcon: {
+    width: 40,
+    height: 40,
     borderRadius: RADIUS.md,
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prescriptionText: { flex: 1 },
+  prescriptionTitle: { fontSize: 14, fontWeight: '900', color: BRAND.blueDeep },
+  prescriptionBody: { marginTop: 2, fontSize: 12, fontWeight: '700', color: '#6A7788' },
+  benefitGrid: { marginTop: SPACE.xl, flexDirection: 'row', gap: SPACE.sm },
+  benefit: {
+    flex: 1,
+    minHeight: 122,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: '#E1EAF7',
+    padding: SPACE.md,
+    alignItems: 'center',
+  },
+  benefitIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#E8F0FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  benefitTitle: { marginTop: SPACE.sm, fontSize: 13, fontWeight: '900', color: '#1F2937' },
+  benefitBody: {
+    marginTop: 4,
+    textAlign: 'center',
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '700',
+    color: '#657284',
+  },
+  actions: { marginTop: SPACE.xl, gap: SPACE.md },
+  primaryButton: {
+    minHeight: 58,
+    borderRadius: RADIUS.lg,
+    backgroundColor: BRAND.blue,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACE.sm,
+    shadowColor: BRAND.blue,
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5,
   },
-  ctaText: { fontSize: 15.5, fontWeight: '800', color: BRAND.blueDeep },
-  ghost: { marginTop: SPACE.md, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  ghostText: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.88)' },
-  pressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
-
-  legal: {
+  primaryText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF' },
+  secondaryButton: {
+    minHeight: 52,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#DDE8FA',
+  },
+  secondaryText: { fontSize: 15, fontWeight: '900', color: BRAND.blueDeep },
+  pressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
+  footer: {
     marginTop: SPACE.lg,
     textAlign: 'center',
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.55)',
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: '#687789',
   },
 });

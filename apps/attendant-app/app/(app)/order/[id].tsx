@@ -26,7 +26,6 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   Linking,
   Pressable,
   RefreshControl,
@@ -37,6 +36,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  ConfirmModal,
   DetailRow,
   Divider,
   EmptyState,
@@ -45,6 +45,7 @@ import {
   GlassButton,
   Loading,
   OrderProgress,
+  PrescriptionPreviewModal,
   ScreenHeader,
   StatusPill,
   StickyBar,
@@ -95,6 +96,8 @@ export default function OrderDetail() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState(CANCEL_REASONS[0]);
   const [note, setNote] = useState('');
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [prescriptionPreviewOpen, setPrescriptionPreviewOpen] = useState(false);
 
   if (view.loading) {
     return (
@@ -129,8 +132,8 @@ export default function OrderDetail() {
   const riderName = order.delivery?.rider_name ?? null;
   const riderPhone = order.delivery?.rider_phone ?? null;
   const canCancel = ORDER_STATUS_FLOW[order.status].includes('cancelled');
-  const ticked = order.items.filter((i) => checked[i.id]).length;
-  const allTicked = ticked === order.items.length;
+  const ticked = order.items?.filter((i) => checked[i.id]).length || 0;
+  const allTicked = order.items ? ticked === order.items.length : false;
   // Only the pack step is gated — checking items off is pointless once the box
   // is sealed, and blocking a delivery hand-off on it would be theatre.
   const gated = next?.to === 'packed' && !allTicked;
@@ -151,6 +154,8 @@ export default function OrderDetail() {
     try {
       const updated = await data.advanceStatus(order.id, next.to);
       view.setData(updated);
+      // Refresh the view to recalculate all derived values
+      await view.refresh();
       toast.success(`${order.code} is now ${ORDER_STATUS_META[updated.status].label.toLowerCase()}.`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not move that order.');
@@ -161,27 +166,26 @@ export default function OrderDetail() {
 
   const submitCancel = () => {
     const full = note.trim() ? `${reason} — ${note.trim()}` : reason;
-    Alert.alert('Cancel this order?', `The customer is told: "${full}". This cannot be undone.`, [
-      { text: 'Keep it', style: 'cancel' },
-      {
-        text: 'Cancel order',
-        style: 'destructive',
-        onPress: async () => {
-          setBusy(true);
-          try {
-            const updated = await data.cancelOrder(order.id, full);
-            view.setData(updated);
-            setCancelOpen(false);
-            setNote('');
-            toast.success(`${order.code} cancelled.`);
-          } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Could not cancel that order.');
-          } finally {
-            setBusy(false);
-          }
-        },
-      },
-    ]);
+    setConfirmCancelOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    const full = note.trim() ? `${reason} — ${note.trim()}` : reason;
+    setBusy(true);
+    try {
+      const updated = await data.cancelOrder(order.id, full);
+      view.setData(updated);
+      // Refresh the view to recalculate all derived values
+      await view.refresh();
+      setCancelOpen(false);
+      setConfirmCancelOpen(false);
+      setNote('');
+      toast.success(`${order.code} cancelled.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not cancel that order.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -275,7 +279,7 @@ export default function OrderDetail() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Open the prescription full size"
-                onPress={() => void Linking.openURL(rx)}
+                onPress={() => setPrescriptionPreviewOpen(true)}
                 style={({ pressed }) => [
                   styles.card,
                   styles.rxCard,
@@ -300,13 +304,13 @@ export default function OrderDetail() {
             <Text
               style={[TYPE.caption, { color: allTicked ? colors.accentText : colors.faintText }]}
             >
-              {ticked} of {order.items.length} picked
+              {ticked} of {order.items?.length || 0} picked
             </Text>
           </View>
           <View
             style={[styles.listCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
           >
-            {order.items.map((item, index) => {
+            {(order.items || []).map((item, index) => {
               const on = !!checked[item.id];
               return (
                 <Pressable
@@ -470,8 +474,8 @@ export default function OrderDetail() {
                   style={styles.noteField}
                 />
                 <GlassButton
-                  title="Cancel this order"
-                  icon="x-circle"
+                  title="Review cancellation"
+                  icon="arrow-right"
                   variant="danger"
                   loading={busy}
                   onPress={submitCancel}
@@ -505,6 +509,23 @@ export default function OrderDetail() {
           )}
         </StickyBar>
       )}
+
+      <ConfirmModal
+        visible={confirmCancelOpen}
+        title="Cancel this order?"
+        message={`The customer will be told: "${note.trim() ? `${reason} — ${note.trim()}` : reason}". This cannot be undone.`}
+        confirmText="Cancel order"
+        cancelText="Keep it"
+        destructive
+        onConfirm={confirmCancel}
+        onCancel={() => setConfirmCancelOpen(false)}
+        loading={busy}
+      />
+      <PrescriptionPreviewModal
+        visible={prescriptionPreviewOpen}
+        url={rx}
+        onClose={() => setPrescriptionPreviewOpen(false)}
+      />
     </SafeAreaView>
   );
 }

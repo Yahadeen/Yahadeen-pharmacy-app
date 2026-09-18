@@ -103,17 +103,24 @@ export class NotificationService {
   }
 
   static async markAsRead(notificationId: string, auth: AuthContext): Promise<Notification> {
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('notifications')
       .update({ 
         is_read: true,
         read_at: new Date().toISOString()
       })
-      .eq('id', notificationId)
-      .select()
-      .single();
+      .eq('id', notificationId);
+
+    if (!['admin', 'super_admin'].includes(auth.role)) {
+      query = query.eq('user_id', auth.userId);
+    }
+
+    const { data, error } = await query.select().single();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Forbidden');
+      }
       throw new Error(`Failed to mark notification as read: ${error.message}`);
     }
 

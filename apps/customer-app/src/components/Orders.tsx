@@ -163,7 +163,7 @@ export function OrderTimeline({ order }: { order: Order }) {
           <View style={styles.stepBody}>
             <Text style={[TYPE.label, { color: colors.text, fontWeight: '800' }]}>Cancelled</Text>
             <Text style={[TYPE.caption, styles.stepDetail, { color: colors.mutedText }]}>
-              {order.cancel_reason ?? ORDER_STATUS_META.cancelled.detail}
+              {order.cancellation_reason ?? ORDER_STATUS_META.cancelled.detail}
             </Text>
             {!!order.cancelled_at && (
               <Text style={[TYPE.caption, styles.stepStamp, { color: colors.faintText }]}>

@@ -174,7 +174,7 @@ export const data = {
       ...found,
       status: 'cancelled' as const,
       cancelled_at: new Date().toISOString(),
-      cancel_reason: reason,
+      cancellation_reason: reason,
     });
   },
 
@@ -200,7 +200,7 @@ export const data = {
   /* -------------------------------------------------- prescription upload -- */
   prescriptionUploadUrl: (fileName: string, contentType: string) =>
     DEMO_MODE
-      ? settle({ upload_url: '', public_url: `demo://prescriptions/${fileName}` })
+      ? settle({ upload_info: null, public_url: `demo://prescriptions/${fileName}` })
       : api.uploads.prescriptionUrl(fileName, contentType),
 
   /* ---------------------------------------------------- push tokens -- */

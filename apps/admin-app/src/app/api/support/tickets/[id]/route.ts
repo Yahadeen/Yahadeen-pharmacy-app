@@ -23,6 +23,17 @@ export async function GET(
           total_kobo,
           status
         ),
+        customer:customer_id (
+          id,
+          full_name,
+          email,
+          phone
+        ),
+        attendant:attendant_id (
+          id,
+          full_name,
+          email
+        ),
         messages:support_messages (
           id,
           message,

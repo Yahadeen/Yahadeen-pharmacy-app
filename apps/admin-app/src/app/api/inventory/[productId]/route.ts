@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, requireStaff } from '@/server/auth';
 import { InventoryService } from '@/server/services';
+import { ProductService } from '@/server/services';
 
 export async function PATCH(
   request: NextRequest,
@@ -17,7 +18,10 @@ export async function PATCH(
       verifiedAuth
     );
 
-    return NextResponse.json({ success: true });
+    // Return the updated product with stock information
+    const updatedProduct = await ProductService.getProductById(productId);
+
+    return NextResponse.json(updatedProduct);
   } catch (error: any) {
     console.error('Error updating inventory:', error);
     if (error.message === 'Forbidden') {

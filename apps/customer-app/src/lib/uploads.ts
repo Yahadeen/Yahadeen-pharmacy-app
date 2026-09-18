@@ -1,15 +1,16 @@
 /**
  * Prescription upload.
  *
- * Two hops on purpose: the app asks the API for a short-lived signed URL, then
- * PUTs the bytes straight to Supabase Storage. The service-role key never leaves
- * the server and the file never passes through the API process.
+ * Direct upload to R2 storage using the modern File API for Expo.
+ * The file is uploaded directly to the server which then stores it in R2.
  *
  * In demo mode `prescriptionUploadUrl` hands back an empty `upload_url`, so this
- * skips the PUT and returns the placeholder — the checkout flow stays walkable
+ * skips the upload and returns the placeholder — the checkout flow stays walkable
  * without a backend.
  */
 import { data } from './data';
+import { supabase } from './supabase';
+import { File } from 'expo-file-system';
 
 export interface PickedFile {
   uri: string;
@@ -36,21 +37,47 @@ export async function uploadPrescription(file: PickedFile): Promise<string> {
   const name =
     file.fileName?.trim() || `prescription-${Date.now()}.${extensionFor(contentType, file.uri)}`;
 
-  const { upload_url, public_url } = await data.prescriptionUploadUrl(name, contentType);
+  const { upload_info, public_url } = await data.prescriptionUploadUrl(name, contentType);
 
   // Demo mode: no storage bucket to write to.
-  if (!upload_url) return public_url;
+  if (!upload_info) return public_url;
 
-  const localRead = await fetch(file.uri);
-  if (!localRead.ok) throw new Error('Could not read that file from your device.');
-  const blob = await localRead.blob();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const token = session?.access_token;
 
-  const put = await fetch(upload_url, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: blob,
+  if (!token) {
+    throw new Error('Please sign in again before uploading your prescription.');
+  }
+
+  // Create FormData and append the blob directly with the filename
+  const formData = new FormData();
+  formData.append('file', new File(file.uri), name);
+  formData.append('fileName', name);
+  formData.append('mimeType', contentType);
+
+  // Build full endpoint URL
+  const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+  const uploadEndpoint = upload_info.endpoint.startsWith('http')
+    ? upload_info.endpoint
+    : `${BASE_URL}${upload_info.endpoint}`;
+
+  // Upload directly to the server endpoint
+  const uploadResponse = await fetch(uploadEndpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'x-upload-type': 'prescription',
+    },
+    body: formData,
   });
-  if (!put.ok) throw new Error('The upload failed. Check your connection and try again.');
 
-  return public_url;
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text();
+    throw new Error(`Upload failed: ${errorText}`);
+  }
+
+  const uploadResult = await uploadResponse.json();
+  return uploadResult.url || public_url;
 }

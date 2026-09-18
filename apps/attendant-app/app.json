@@ -22,7 +22,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -54,6 +53,7 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/images/notification-icon.png",
           "color": "#0036B6",
           "defaultChannel": "queue"
         }
@@ -64,8 +64,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
-      }
-    }
+        "projectId": "2ec7ec57-ee8f-47ff-97bc-5419eead85c0"
+      },
+      "router": {}
+    },
+    "owner": "yahadeens-team"
   }
 }

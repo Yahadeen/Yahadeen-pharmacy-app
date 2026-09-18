@@ -20,7 +20,7 @@ declare
   v_notification_id uuid;
 begin
   insert into notifications (user_id, title, message, type, data)
-  values (p_user_id, p_title, p_message, p_type, p_data)
+  values (p_user_id, p_title, p_message, p_type::notification_type, p_data)
   returning id into v_notification_id;
   
   return v_notification_id;
@@ -40,9 +40,9 @@ language plpgsql
 as $$
 begin
   insert into notifications (user_id, title, message, type, data)
-  select id, p_title, p_message, p_type, p_data
+  select id, p_title, p_message, p_type::notification_type, p_data
   from users
-  where role = any(p_roles)
+  where role::text = any(p_roles)
   and is_active = true;
 end;
 $$;

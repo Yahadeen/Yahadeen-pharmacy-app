@@ -13,9 +13,11 @@ import {
   formatNaira,
 } from '@pharmago/shared';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  ConfirmModal,
   Divider,
   EmptyState,
   Entrance,
@@ -36,12 +38,10 @@ export default function Cart() {
   const remaining = FREE_DELIVERY_THRESHOLD_KOBO - cart.subtotalKobo;
   const qualifiesForFreeDelivery = remaining <= 0;
   const progress = Math.min(1, cart.subtotalKobo / FREE_DELIVERY_THRESHOLD_KOBO);
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const confirmClear = () => {
-    Alert.alert('Empty your cart?', 'This removes every item. It cannot be undone.', [
-      { text: 'Keep items', style: 'cancel' },
-      { text: 'Empty cart', style: 'destructive', onPress: cart.clear },
-    ]);
+    setShowClearModal(true);
   };
 
   if (cart.hydrated && cart.lines.length === 0) {
@@ -196,6 +196,20 @@ export default function Cart() {
           onPress={() => router.push('/(app)/checkout')}
         />
       </StickyBar>
+
+      <ConfirmModal
+        visible={showClearModal}
+        title="Empty your cart?"
+        message="This removes every item. It cannot be undone."
+        confirmText="Empty cart"
+        cancelText="Keep items"
+        destructive
+        onConfirm={() => {
+          cart.clear();
+          setShowClearModal(false);
+        }}
+        onCancel={() => setShowClearModal(false)}
+      />
     </SafeAreaView>
   );
 }

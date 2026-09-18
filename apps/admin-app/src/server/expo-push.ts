@@ -117,7 +117,7 @@ export async function registerExpoPushToken(
     .upsert({
       user_id: userId,
       token,
-      platform: 'expo',
+      platform: deviceInfo?.platform || 'expo',
       device_info: deviceInfo || {},
       is_active: true,
       updated_at: new Date().toISOString(),

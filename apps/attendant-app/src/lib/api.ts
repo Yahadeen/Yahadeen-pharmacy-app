@@ -135,7 +135,7 @@ export const api = {
     get: () => request<Profile>('/api/me'),
     update: (patch: Partial<Pick<Profile, 'full_name' | 'phone' | 'avatar_url'>>) =>
       request<Profile>('/api/me', { method: 'PATCH', body: JSON.stringify(patch) }),
-    registerPushToken: (token: string, platform: 'ios' | 'android') =>
+    registerPushToken: (token: string, platform: 'ios' | 'android' | 'web') =>
       request<void>('/api/me/push-token', {
         method: 'POST',
         body: JSON.stringify({ token, platform }),
@@ -216,11 +216,10 @@ export const api = {
   products: {
     list: (query: ProductQuery = {}) =>
       request<Paginated<ProductWithStock>>(
-        `/api/products${qs({
+        `/api/inventory/products${qs({
           q: query.q,
           category: query.category,
           in_stock_only: query.in_stock_only,
-          sort: query.sort,
           page: query.page,
           page_size: query.page_size,
         })}`,

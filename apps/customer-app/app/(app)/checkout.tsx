@@ -12,9 +12,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  ActionModal,
   DetailRow,
   Divider,
   Entrance,
@@ -43,6 +44,7 @@ export default function Checkout() {
   const [uploading, setUploading] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showRxModal, setShowRxModal] = useState(false);
 
   const addresses = useAsync(() => data.addresses(), []);
 
@@ -100,10 +102,14 @@ export default function Checkout() {
     setRxUri(asset.uri);
     setUploading(true);
     try {
+      // Extract file info from asset (handle read-only properties)
+      const fileName = asset.fileName || `prescription-${Date.now()}.jpg`;
+      const mimeType = asset.mimeType || 'image/jpeg';
+
       const url = await uploadPrescription({
         uri: asset.uri,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
+        fileName,
+        mimeType,
       });
       setRxUrl(url);
       toast.success('Prescription attached.');
@@ -116,11 +122,7 @@ export default function Checkout() {
   };
 
   const attach = () => {
-    Alert.alert('Attach prescription', 'A clear photo of the whole page works best.', [
-      { text: 'Take a photo', onPress: () => void pick('camera') },
-      { text: 'Choose from library', onPress: () => void pick('library') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setShowRxModal(true);
   };
 
   const place = async () => {
@@ -135,7 +137,7 @@ export default function Checkout() {
 
     setPlacing(true);
     try {
-      const { order, payment_url } = await data.createOrder({
+      const { order } = await data.createOrder({
         address_id: addressId,
         items: cart.lines.map((l) => ({ product_id: l.product_id, quantity: l.quantity })),
         note: note.trim() || undefined,
@@ -144,7 +146,7 @@ export default function Checkout() {
       
       cart.clear();
       
-      if (payment_url) {
+      if (order.status === 'pending_payment' || order.status === 'payment_failed') {
         // Navigate to payment confirmation screen with order ID
         router.push(`/(app)/payment-confirm/${order.id}`);
       } else {
@@ -369,6 +371,25 @@ export default function Checkout() {
           onPress={rxMissing ? attach : place}
         />
       </StickyBar>
+
+      <ActionModal
+        visible={showRxModal}
+        title="Attach prescription"
+        message="A clear photo of the whole page works best."
+        actions={[
+          {
+            label: 'Take a photo',
+            icon: 'camera',
+            onPress: () => void pick('camera'),
+          },
+          {
+            label: 'Choose from library',
+            icon: 'image',
+            onPress: () => void pick('library'),
+          },
+        ]}
+        onCancel={() => setShowRxModal(false)}
+      />
     </SafeAreaView>
   );
 }

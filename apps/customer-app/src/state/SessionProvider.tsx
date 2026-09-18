@@ -59,6 +59,11 @@ const SessionContext = createContext<SessionValue | null>(null);
 const WRONG_APP =
   'That account belongs to pharmacy staff. Please use the Yahadeen Pharm Go Staff app to sign in.';
 
+type ExpoConstantsWithProjectId = typeof Constants & {
+  expoConfig?: { extra?: { eas?: { projectId?: string } } };
+  easConfig?: { projectId?: string };
+};
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [session, setSession] = useState<Session | null>(null);
@@ -81,11 +86,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
     // Push notifications disabled for Expo Go development
     // Re-enable when using development builds
     if (DEMO_AUTH || isExpoGo) return;
-    
+
     try {
       // Dynamic import to avoid Expo Go errors
       const Notifications = await import('expo-notifications');
-      const token = await Notifications.getExpoPushTokenAsync();
+      const ConstantsModule = await import('expo-constants');
+      const expoConstants = ConstantsModule.default as ExpoConstantsWithProjectId;
+
+      // Get projectId from Constants
+      const projectId =
+        expoConstants.expoConfig?.extra?.eas?.projectId ??
+        expoConstants.easConfig?.projectId ??
+        process.env.EXPO_PUBLIC_EXPO_PROJECT_ID;
+
+      if (!projectId) {
+        console.log('Project ID not found - skipping push token registration');
+        return;
+      }
+
+      const token = await Notifications.getExpoPushTokenAsync({ projectId });
       const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
       await data.registerPushToken(token.data, platform);
     } catch (error) {
@@ -107,9 +126,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
       let row: Profile | null = null;
       try {
         row = await loadProfile(next.user.id);
-      } catch {
+      } catch (error) {
         // Network or RLS hiccup: keep the session, let screens retry. Treating
         // this as a sign-out would log people out every time Wi-Fi drops.
+        console.warn('Failed to load profile:', error);
         row = null;
       }
 
@@ -129,7 +149,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       setSession(next);
       setProfile(row);
       setStatus('signed_in');
-      
+
       // Register push token when user signs in
       if (next && row) {
         void registerPushToken();

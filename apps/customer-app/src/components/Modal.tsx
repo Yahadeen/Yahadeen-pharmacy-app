@@ -26,6 +26,19 @@ export interface ConfirmModalProps {
   loading?: boolean;
 }
 
+export interface ActionModalProps {
+  visible: boolean;
+  title: string;
+  message?: string;
+  actions: Array<{
+    label: string;
+    icon?: keyof typeof Feather.glyphMap;
+    onPress: () => void;
+    variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  }>;
+  onCancel: () => void;
+}
+
 /**
  * Confirmation modal with themed design.
  * Used for destructive actions like logout, delete, etc.
@@ -96,6 +109,86 @@ export function ConfirmModal({
   );
 }
 
+/**
+ * Action modal with multiple choices.
+ * Used for selecting between multiple options like camera vs library, etc.
+ */
+export function ActionModal({
+  visible,
+  title,
+  message,
+  actions,
+  onCancel,
+}: ActionModalProps) {
+  const { colors } = useTheme();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onCancel}
+    >
+      <Animated.View
+        entering={FadeIn.duration(200)}
+        exiting={FadeOut.duration(150)}
+        style={styles.overlay}
+      >
+        <Pressable style={styles.backdrop} onPress={onCancel}>
+          <View style={styles.modalContainer}>
+            <Pressable
+              style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
+              <Text style={[TYPE.heading, styles.title, { color: colors.text }]}>{title}</Text>
+              {message && <Text style={[TYPE.body, styles.message, { color: colors.mutedText }]}>{message}</Text>}
+
+              <View style={styles.actionList}>
+                {actions.map((action, index) => (
+                  <Pressable
+                    key={index}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: action.variant === 'danger' ? colors.dangerSoft : colors.surfaceAlt, borderColor: colors.border },
+                    ]}
+                    onPress={() => {
+                      onCancel();
+                      action.onPress();
+                    }}
+                  >
+                    {action.icon && (
+                      <Feather
+                        name={action.icon}
+                        size={20}
+                        color={action.variant === 'danger' ? colors.danger : colors.primary}
+                      />
+                    )}
+                    <Text
+                      style={[
+                        styles.actionLabel,
+                        { color: action.variant === 'danger' ? colors.danger : colors.text },
+                      ]}
+                    >
+                      {action.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <GlassButton
+                title="Cancel"
+                variant="ghost"
+                onPress={onCancel}
+                style={styles.cancelButton}
+              />
+            </Pressable>
+          </View>
+        </Pressable>
+      </Animated.View>
+    </Modal>
+  );
+}
+
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -149,5 +242,23 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
+  },
+  actionList: {
+    gap: SPACE.sm,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.md,
+    padding: SPACE.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+  },
+  actionLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: SPACE.sm,
   },
 });

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, requireCustomer, requireStaff } from '@/server/auth';
 import { OrderService } from '@/server/services';
-import { supabaseAdmin } from '@/server/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,49 +65,15 @@ export async function POST(request: NextRequest) {
         quantity: item.qty || item.quantity,
       })),
       address_id: body.address_id,
-      notes: body.notes,
+      notes: body.note ?? body.notes,
       prescription_url: body.prescription_url,
     };
 
     const order = await OrderService.createOrder(orderInput, verifiedAuth);
 
-    // Initialize payment with Paystack
-    let paymentUrl = null;
-    let reference = null;
-    try {
-      const { initializePayment } = await import('@/server/paystack');
-      const paymentData = await initializePayment({
-        amount_kobo: order.total_kobo,
-        email: verifiedAuth.email || 'customer@example.com',
-        order_id: order.id,
-        customer_id: verifiedAuth.userId,
-      });
-      paymentUrl = paymentData.data.authorization_url;
-      reference = paymentData.data.reference;
-
-      // Create payment record in database
-      const { error: paymentError } = await supabaseAdmin
-        .from('payments')
-        .insert({
-          order_id: order.id,
-          amount_kobo: order.total_kobo,
-          payment_method: 'paystack',
-          payment_reference: reference,
-          status: 'pending',
-        });
-
-      if (paymentError) {
-        console.error('Error creating payment record:', paymentError);
-        // Continue without payment record if it fails
-      }
-    } catch (paymentError) {
-      console.error('Error initializing payment:', paymentError);
-      // Continue without payment URL if it fails
-    }
-
     return NextResponse.json({ 
       order, 
-      payment_url: paymentUrl 
+      payment_url: null,
     }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating order:', error);

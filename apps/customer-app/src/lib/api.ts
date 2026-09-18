@@ -250,9 +250,13 @@ export const api = {
 
   /* -------------------------------------------------- prescription upload -- */
   uploads: {
-    /** Returns a short-lived signed URL the client PUTs the file to. */
+    /** Returns the upload endpoint and final public URL for a prescription file. */
     prescriptionUrl: (fileName: string, contentType: string) =>
-      request<{ upload_url: string; public_url: string }>('/api/uploads/prescription', {
+      request<{
+        upload_url: string;
+        public_url: string;
+        upload_info: { endpoint: string; folder: string; expected_filename: string } | null;
+      }>('/api/uploads/prescription', {
         method: 'POST',
         body: JSON.stringify({ file_name: fileName, content_type: contentType }),
       }),

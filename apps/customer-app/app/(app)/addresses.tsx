@@ -13,7 +13,6 @@ import type { Address } from '@pharmago/shared';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -26,6 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  ConfirmModal,
   Divider,
   EmptyState,
   Entrance,
@@ -91,6 +91,7 @@ export default function AddressesScreen() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Draft, string>>>({});
   const [saving, setSaving] = useState(false);
+  const [removeAddress, setRemoveAddress] = useState<Address | null>(null);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -162,26 +163,19 @@ export default function AddressesScreen() {
   };
 
   const confirmRemove = (address: Address) => {
-    Alert.alert(
-      'Remove this address?',
-      'Orders already placed keep the address they were sent to.',
-      [
-        { text: 'Keep it', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await data.removeAddress(address.id);
-              toast.success('Address removed.');
-              await view.reload();
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : 'Could not remove that address.');
-            }
-          },
-        },
-      ],
-    );
+    setRemoveAddress(address);
+  };
+
+  const handleRemove = async () => {
+    if (!removeAddress) return;
+    try {
+      await data.removeAddress(removeAddress.id);
+      toast.success('Address removed.');
+      await view.reload();
+      setRemoveAddress(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not remove that address.');
+    }
   };
 
   return (
@@ -452,6 +446,17 @@ export default function AddressesScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      <ConfirmModal
+        visible={!!removeAddress}
+        title="Remove this address?"
+        message="Orders already placed keep the address they were sent to."
+        confirmText="Remove"
+        cancelText="Keep it"
+        destructive
+        onConfirm={handleRemove}
+        onCancel={() => setRemoveAddress(null)}
+      />
     </SafeAreaView>
   );
 }

@@ -15,30 +15,16 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "bundleIdentifier": "com.yahadeen.customer.preview"
-      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "distribution": "store",
-      "ios": {
-        "bundleIdentifier": "com.yahadeen.customer"
-      },
-      "android": {
-        "bundleIdentifier": "com.yahadeen.customer"
-      }
+      "distribution": "store"
     }
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "internal"

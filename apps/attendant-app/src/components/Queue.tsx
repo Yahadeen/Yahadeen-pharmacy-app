@@ -149,13 +149,13 @@ const SHORT_LABEL: Partial<Record<OrderStatus, string>> = {
   preparing: 'Preparing',
   packed: 'Packed',
   ready_for_pickup: 'Ready',
+  picked_up: 'Picked up',
   out_for_delivery: 'On way',
   delivered: 'Delivered',
 };
 
-/** `picked_up` has no node of its own — it sits on the "Ready" one. */
 function timelineIndex(status: OrderStatus): number {
-  return ORDER_TIMELINE.indexOf(status === 'picked_up' ? 'ready_for_pickup' : status);
+  return ORDER_TIMELINE.indexOf(status);
 }
 
 /**
@@ -173,9 +173,9 @@ export function OrderProgress({ order }: { order: Order }) {
         <Feather name="x-circle" size={16} color={colors.danger} />
         <View style={styles.flex}>
           <Text style={[TYPE.label, { color: colors.danger }]}>Cancelled</Text>
-          {!!order.cancel_reason && (
+          {!!order.cancellation_reason && (
             <Text style={[TYPE.caption, styles.cancelReason, { color: colors.danger }]}>
-              {order.cancel_reason}
+              {order.cancellation_reason}
             </Text>
           )}
         </View>

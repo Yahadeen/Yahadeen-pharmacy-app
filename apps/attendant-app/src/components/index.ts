@@ -10,6 +10,7 @@ export {
 } from './Glass';
 export { FloatingTabBar, type TabItem } from './FloatingTabBar';
 export { ConfirmModal, type ConfirmModalProps } from './Modal';
+export { PrescriptionPreviewModal } from './PrescriptionPreviewModal';
 export { OrderProgress, QueueCard, QueueGroupHeader, formatOrderDate, waitedFor } from './Queue';
 export {
   MOVEMENT_META,

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../supabase';
 import { AuthContext } from '../auth';
+import { PushService } from './push.service';
 
 export interface Order {
   id: string;
@@ -14,15 +15,6 @@ export interface Order {
   notes?: string;
   created_at: string;
   updated_at: string;
-  paid_at?: string;
-  confirmed_at?: string;
-  preparing_at?: string;
-  packed_at?: string;
-  ready_at?: string;
-  picked_up_at?: string;
-  out_for_delivery_at?: string;
-  delivered_at?: string;
-  cancelled_at?: string;
   cancellation_reason?: string;
 }
 
@@ -255,6 +247,7 @@ export class OrderService {
         total_kobo: totalKobo,
         address_id: input.address_id,
         notes: input.notes,
+        prescription_url: input.prescription_url || null,
       })
       .select()
       .single();
@@ -277,19 +270,7 @@ export class OrderService {
       throw new Error(`Failed to create order items: ${itemsError.message}`);
     }
 
-    // Deduct stock from products
-    for (const item of input.items) {
-      const product = products.find((p) => p.id === item.product_id)!;
-      const newStock = product.stock_quantity - item.quantity;
-      const { error: stockError } = await supabaseAdmin
-        .from('products')
-        .update({ stock_quantity: newStock })
-        .eq('id', item.product_id);
-      
-      if (stockError) {
-        console.error(`Failed to deduct stock for product ${item.product_id}:`, stockError);
-      }
-    }
+    // Note: Stock is now deducted when order status changes to 'confirmed' (not at creation)
 
     // Fetch the address for the response
     const { data: orderAddress } = await supabaseAdmin
@@ -297,6 +278,22 @@ export class OrderService {
       .select('*')
       .eq('id', input.address_id)
       .single();
+
+    // Send push notification for new order to all admins and attendants
+    try {
+      await PushService.sendToRoles(['attendant', 'admin', 'super_admin'], {
+        title: 'New Order Received',
+        body: `New order #${order.code} from customer`,
+        data: {
+          type: 'order_created',
+          order_id: order.id,
+          screen: 'order/[id]',
+        },
+      });
+    } catch (pushError) {
+      // Don't fail the order creation if push fails
+      console.error('Failed to send push notification:', pushError);
+    }
 
     return {
       ...order,
@@ -318,27 +315,16 @@ export class OrderService {
     input: UpdateOrderStatusInput,
     auth: AuthContext
   ): Promise<Order> {
+    // Get current order status before updating to check for stock restoration
+    const { data: currentOrder } = await supabaseAdmin
+      .from('orders')
+      .select('status')
+      .eq('id', id)
+      .single();
+
     const updates: any = {
       status: input.status,
     };
-
-    // Add timestamp based on status
-    const timestampMap: Record<string, string> = {
-      'paid': 'paid_at',
-      'confirmed': 'confirmed_at',
-      'preparing': 'preparing_at',
-      'packed': 'packed_at',
-      'ready_for_pickup': 'ready_at',
-      'picked_up': 'picked_up_at',
-      'out_for_delivery': 'out_for_delivery_at',
-      'delivered': 'delivered_at',
-      'cancelled': 'cancelled_at',
-    };
-
-    const timestampField = timestampMap[input.status];
-    if (timestampField) {
-      updates[timestampField] = new Date().toISOString();
-    }
 
     if (input.attendant_id) {
       updates.attendant_id = input.attendant_id;
@@ -346,9 +332,6 @@ export class OrderService {
 
     if (input.cancellation_reason) {
       updates.cancellation_reason = input.cancellation_reason;
-      if (!updates.cancelled_at) {
-        updates.cancelled_at = new Date().toISOString();
-      }
     }
 
     const { data, error } = await supabaseAdmin
@@ -362,9 +345,66 @@ export class OrderService {
       throw new Error(`Failed to update order status: ${error.message}`);
     }
 
-    // If order is cancelled, restore stock
-    if (input.status === 'cancelled') {
-      await this.restoreStock(id);
+    // Deduct stock when order is packed (items have been verified)
+    if (input.status === 'packed') {
+      await this.deductStock(id);
+    }
+
+    // If order is cancelled, restore stock only if it was previously packed
+    if (input.status === 'cancelled' && currentOrder) {
+      // Only restore stock if the order was at or past 'packed' status
+      // This means stock was already deducted
+      if (['packed', 'ready_for_pickup', 'picked_up', 'out_for_delivery'].includes(currentOrder.status)) {
+        await this.restoreStock(id);
+      }
+    }
+
+    // Send push notifications for order status changes
+    try {
+      // Notify customer about status change
+      await PushService.sendToUser(data.customer_id, {
+        title: input.status === 'cancelled' ? 'Order Cancelled' : 'Order Status Updated',
+        body: input.status === 'cancelled'
+          ? `Your order #${data.code} was cancelled${data.cancellation_reason ? `: ${data.cancellation_reason}` : '.'}`
+          : `Your order #${data.code} is now ${input.status}`,
+        data: {
+          type: input.status === 'cancelled' ? 'order_cancelled' : 'order_status_updated',
+          order_id: data.id,
+          status: input.status,
+          cancellation_reason: data.cancellation_reason,
+          screen: 'order/[id]',
+        },
+      });
+
+      // Notify attendant if one is assigned
+      if (data.attendant_id) {
+        await PushService.sendToUser(data.attendant_id, {
+          title: 'Order Status Updated',
+          body: `Order #${data.code} is now ${input.status}`,
+          data: {
+            type: 'order_status_updated',
+            order_id: data.id,
+            status: input.status,
+            screen: 'order/[id]',
+          },
+        });
+      }
+
+      if (['paid', 'cancelled', 'payment_failed'].includes(input.status)) {
+        await PushService.sendToRoles(['attendant', 'admin', 'super_admin'], {
+          title: input.status === 'paid' ? 'Order Paid' : input.status === 'cancelled' ? 'Order Cancelled' : 'Payment Failed',
+          body: `Order #${data.code} is now ${input.status}`,
+          data: {
+            type: input.status === 'cancelled' ? 'order_cancelled' : 'order_status_updated',
+            order_id: data.id,
+            status: input.status,
+            screen: 'order/[id]',
+          },
+        });
+      }
+    } catch (pushError) {
+      // Don't fail the order update if push fails
+      console.error('Failed to send push notification:', pushError);
     }
 
     return data;
@@ -379,6 +419,35 @@ export class OrderService {
       { status: 'cancelled', cancellation_reason: reason },
       auth
     );
+  }
+
+  /**
+   * Deduct stock when order is packed (items have been verified)
+   */
+  private static async deductStock(orderId: string): Promise<void> {
+    const { data: items } = await supabaseAdmin
+      .from('order_items')
+      .select('product_id, quantity')
+      .eq('order_id', orderId);
+
+    if (!items) return;
+
+    for (const item of items) {
+      // Get current stock
+      const { data: product } = await supabaseAdmin
+        .from('products')
+        .select('stock_quantity')
+        .eq('id', item.product_id)
+        .single();
+      
+      if (product) {
+        const newStock = Math.max(0, product.stock_quantity - item.quantity);
+        await supabaseAdmin
+          .from('products')
+          .update({ stock_quantity: newStock })
+          .eq('id', item.product_id);
+      }
+    }
   }
 
   /**

@@ -188,7 +188,8 @@ export default function SupportChatScreen() {
 
       if (response.ok) {
         setMessages(data.messages || []);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+        // Scroll to end after messages are loaded
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 300);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -211,10 +212,26 @@ export default function SupportChatScreen() {
         (payload) => {
           const newMessage = payload.new as SupportMessage;
           // Check if message already exists to avoid duplicates
+          // Also check if it's our own optimistic message to avoid duplication
           setMessages((prev) => {
-            if (prev.some(m => m.id === newMessage.id)) {
+            const isDuplicate = prev.some(m => m.id === newMessage.id);
+            const isOurOptimistic = prev.some(m => m.id.startsWith('temp-') && m.sender_id === currentUserId);
+            
+            if (isDuplicate) {
               return prev;
             }
+            
+            // If this is a real message and we have a matching optimistic message, replace it
+            if (isOurOptimistic && newMessage.sender_id === currentUserId) {
+              const optimisticIndex = prev.findIndex(m => m.id.startsWith('temp-'));
+              if (optimisticIndex >= 0) {
+                const updated = [...prev];
+                updated[optimisticIndex] = newMessage;
+                return updated;
+              }
+            }
+            
+            // Otherwise add the new message
             return [...prev, newMessage];
           });
           setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);

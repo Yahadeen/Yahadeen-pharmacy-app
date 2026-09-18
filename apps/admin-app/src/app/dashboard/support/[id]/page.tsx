@@ -27,9 +27,16 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Get current user ID
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id || null);
+    });
+
     loadTicket();
     loadMessages();
     subscribeToMessages();
@@ -44,7 +51,9 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   const loadTicket = async () => {
@@ -72,6 +81,8 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
       });
       const data = await response.json();
       setMessages(data.messages || []);
+      // Scroll to bottom after messages are loaded
+      setTimeout(() => scrollToBottom(), 300);
     } catch (error) {
       console.error('Error loading messages:', error);
     } finally {
@@ -106,10 +117,26 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
           };
           
           // Check if message already exists to avoid duplicates
+          // Also check if it's our own optimistic message to avoid duplication
           setMessages((prev) => {
-            if (prev.some(m => m.id === newMessage.id)) {
+            const isDuplicate = prev.some(m => m.id === newMessage.id);
+            const isOurOptimistic = prev.some(m => m.id.startsWith('temp-') && m.sender_id === currentUserId);
+            
+            if (isDuplicate) {
               return prev;
             }
+            
+            // If this is a real message and we have a matching optimistic message, replace it
+            if (isOurOptimistic && newMessage.sender_id === currentUserId) {
+              const optimisticIndex = prev.findIndex(m => m.id.startsWith('temp-'));
+              if (optimisticIndex >= 0) {
+                const updated = [...prev];
+                updated[optimisticIndex] = enrichedMessage;
+                return updated;
+              }
+            }
+            
+            // Otherwise add the new message
             return [...prev, enrichedMessage];
           });
           setTimeout(() => scrollToBottom(), 100);
@@ -135,7 +162,7 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
     const optimisticMessage: SupportMessage = {
       id: tempId,
       ticket_id: id,
-      sender_id: 'admin-temp',
+      sender_id: currentUserId || 'unknown',
       sender_role: 'admin',
       message: messageText.trim() || (selectedImage ? 'Image attachment' : ''),
       attachment_url: attachmentUrl,
@@ -450,7 +477,7 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
         }}
       >
         <div 
-          ref={messagesEndRef}
+          ref={messagesContainerRef}
           style={{ 
             display: 'flex', 
             flexDirection: 'column', 
@@ -478,7 +505,10 @@ export default function SupportChatPage({ params }: { params: Promise<{ id: stri
               </p>
             </div>
           ) : (
-            messages.map(renderMessage)
+            <>
+              {messages.map(renderMessage)}
+              <div ref={messagesEndRef} style={{ height: 1 }} />
+            </>
           )}
         </div>
       </div>

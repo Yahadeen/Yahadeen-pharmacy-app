@@ -117,6 +117,9 @@ export const data = {
   uploadAvatar: (fileUri: string): Promise<{ url: string; id: string }> =>
     DEMO_MODE ? settle({ url: fileUri, id: 'demo' }) : api.me.uploadAvatar(fileUri),
 
+  registerPushToken: (token: string, platform: 'ios' | 'android' | 'web'): Promise<void> =>
+    DEMO_MODE ? settle(undefined) : api.me.registerPushToken(token, platform),
+
   /* ---------------------------------------------------------------- queue -- */
   orders: (
     params: { status?: string; page?: number } = {},
@@ -164,7 +167,7 @@ export const data = {
       ...orders[index],
       status: 'cancelled',
       cancelled_at: new Date().toISOString(),
-      cancel_reason: reason,
+      cancellation_reason: reason,
     };
     orders[index] = next;
     return settle(next, 420);

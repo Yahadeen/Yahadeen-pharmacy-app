@@ -17,6 +17,8 @@
  * is walkable on a device. Filling in the URL and anon key makes the branch dead
  * code and real auth takes over.
  */
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { STAFF_ROLES, type Profile } from '@pharmago/shared';
 import type { Session, User } from '@supabase/supabase-js';
 import {
@@ -31,6 +33,9 @@ import {
 } from 'react';
 import { data } from '@/src/lib/data';
 import { isSupabaseConfigured, supabase } from '@/src/lib/supabase';
+
+// Check if running in Expo Go (push notifications not supported in Expo Go on Android)
+const isExpoGo = Constants.appOwnership === 'expo';
 
 /** No Supabase project configured → walk the app on fixtures. */
 const DEMO_AUTH = !isSupabaseConfigured;
@@ -55,6 +60,11 @@ const SessionContext = createContext<SessionValue | null>(null);
 const NOT_STAFF =
   'That account is a customer account. Please use the Yahadeen Pharm Go app to shop and track orders.';
 
+type ExpoConstantsWithProjectId = typeof Constants & {
+  expoConfig?: { extra?: { eas?: { projectId?: string } } };
+  easConfig?: { projectId?: string };
+};
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [session, setSession] = useState<Session | null>(null);
@@ -75,6 +85,37 @@ export function SessionProvider({ children }: PropsWithChildren) {
     return row;
   }, []);
 
+  const registerPushToken = useCallback(async () => {
+    // Push notifications disabled for Expo Go development
+    // Re-enable when using development builds
+    if (DEMO_AUTH || isExpoGo) return;
+
+    try {
+      // Dynamic import to avoid Expo Go errors
+      const Notifications = await import('expo-notifications');
+      const ConstantsModule = await import('expo-constants');
+      const expoConstants = ConstantsModule.default as ExpoConstantsWithProjectId;
+
+      // Get projectId from Constants
+      const projectId =
+        expoConstants.expoConfig?.extra?.eas?.projectId ??
+        expoConstants.easConfig?.projectId ??
+        process.env.EXPO_PUBLIC_EXPO_PROJECT_ID;
+
+      if (!projectId) {
+        console.log('Project ID not found - skipping push token registration');
+        return;
+      }
+
+      const token = await Notifications.getExpoPushTokenAsync({ projectId });
+      const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
+      await data.registerPushToken(token.data, platform);
+    } catch (error) {
+      console.warn('Failed to register push token:', error);
+      // Non-fatal: the app works without push notifications
+    }
+  }, []);
+
   const apply = useCallback(
     async (next: Session | null) => {
       if (!next) {
@@ -88,9 +129,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
       let row: Profile | null = null;
       try {
         row = await loadProfile(next.user.id);
-      } catch {
+      } catch (error) {
         // Network or RLS hiccup: keep the session, let screens retry. Treating
         // this as a sign-out would log staff out every time the Wi-Fi drops.
+        console.warn('Failed to load profile:', error);
         row = null;
       }
 
@@ -110,8 +152,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
       setSession(next);
       setProfile(row);
       setStatus('signed_in');
+
+      // Register push token when user signs in
+      if (next && row) {
+        void registerPushToken();
+      }
     },
-    [loadProfile],
+    [loadProfile, registerPushToken],
   );
 
   /** Demo mode only: pull the fixture staff profile and open the gate. */
@@ -133,6 +180,27 @@ export function SessionProvider({ children }: PropsWithChildren) {
       return () => {
         mounted.current = false;
       };
+    }
+
+    // Configure notification handler only if not in Expo Go
+    if (!isExpoGo) {
+      import('expo-notifications').then((Notifications) => {
+        try {
+          Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+              shouldShowAlert: true,
+              shouldPlaySound: true,
+              shouldSetBadge: false,
+              shouldShowBanner: true,
+              shouldShowList: true,
+            }),
+          });
+        } catch (error) {
+          console.warn('Failed to set notification handler:', error);
+        }
+      }).catch((error) => {
+        console.warn('Failed to import expo-notifications:', error);
+      });
     }
 
     supabase.auth

@@ -1,36 +1,17 @@
-/**
- * Staff entry screen. Deliberately has no "Create an account" path — pharmacy
- * accounts are provisioned by an admin in the dashboard, so the only way in is
- * sign-in. If someone arrived here because their customer account was turned
- * away, `wrongAppError` explains why before they try again.
- */
 import { Feather } from '@expo/vector-icons';
 import { BRAND, RADIUS, SPACE } from '@pharmago/shared';
-import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '@/src/state/SessionProvider';
 
 const DUTIES = [
-  {
-    icon: 'list',
-    title: 'Work one queue',
-    body: 'Every paid order lands in front of you, oldest first.',
-  },
-  {
-    icon: 'package',
-    title: 'Keep the shelf honest',
-    body: 'Adjust counts as you dispense — customers see it instantly.',
-  },
-  {
-    icon: 'check-circle',
-    title: 'Hand off cleanly',
-    body: 'Mark it ready and the rider or the customer is notified.',
-  },
+  { icon: 'clipboard', title: 'Orders', body: 'Review paid orders and prescriptions.' },
+  { icon: 'archive', title: 'Stock', body: 'Keep item availability accurate.' },
+  { icon: 'message-circle', title: 'Support', body: 'Reply while the queue keeps moving.' },
 ] as const;
 
 export default function Welcome() {
@@ -40,217 +21,350 @@ export default function Welcome() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={[BRAND.blueDeep, BRAND.blue, '#0047D6']}
+        colors={['#071126', '#0A2565', '#075A74']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      {/* Soft colour orbs give the glass something to refract. */}
-      <View style={[styles.orb, styles.orbGreen]} />
-      <View style={[styles.orb, styles.orbCyan]} />
+      <View style={styles.topBand} />
 
       <SafeAreaView style={styles.safe}>
-        <Animated.View entering={FadeIn.duration(500)} style={styles.brand}>
-          <View style={styles.logoTile}>
-            <Image
-              source={require('../../assets/images/logo.png')}
-              style={styles.logo}
-              contentFit="contain"
-            />
-          </View>
-          <Text style={styles.wordmark}>yahadeen Pharm Go</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Staff</Text>
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(180).duration(500)}>
-          <BlurView intensity={26} tint="dark" style={styles.card}>
-            <View style={styles.cardOverlay} />
-            <Text style={styles.headline}>The counter,{'\n'}without the crowd.</Text>
-
-            {!!wrongAppError && (
-              <View style={styles.notice}>
-                <Feather name="alert-circle" size={15} color="#FFFFFF" />
-                <Text style={styles.noticeText}>{wrongAppError}</Text>
-              </View>
-            )}
-
-            <View style={styles.duties}>
-              {DUTIES.map((duty) => (
-                <View key={duty.title} style={styles.duty}>
-                  <View style={styles.dutyIcon}>
-                    <Feather name={duty.icon} size={16} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.dutyText}>
-                    <Text style={styles.dutyTitle}>{duty.title}</Text>
-                    <Text style={styles.dutyBody}>{duty.body}</Text>
-                  </View>
-                </View>
-              ))}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <Animated.View entering={FadeIn.duration(420)} style={styles.brand}>
+            <View style={styles.logoTile}>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logo}
+                contentFit="contain"
+              />
             </View>
+            <Text style={styles.wordmark}>Yahadeen Pharm Go</Text>
+            <Text style={styles.appLabel}>Staff workspace</Text>
+          </Animated.View>
 
+          <Animated.View entering={FadeInDown.delay(100).duration(520)} style={styles.hero}>
+            <View style={styles.roleBadge}>
+              <Feather name="shield" size={14} color="#DDF6E8" />
+              <Text style={styles.roleBadgeText}>Attendant console</Text>
+            </View>
+            <Text style={styles.title}>Keep the pharmacy queue moving.</Text>
+            <Text style={styles.subtitle}>
+              Confirm orders, review prescriptions, manage stock checks, and keep every customer
+              updated from one focused screen.
+            </Text>
+          </Animated.View>
+
+          {!!wrongAppError && (
+            <Animated.View entering={FadeInDown.delay(165).duration(440)} style={styles.notice}>
+              <Feather name="alert-circle" size={17} color="#FFD3D8" />
+              <Text style={styles.noticeText}>{wrongAppError}</Text>
+            </Animated.View>
+          )}
+
+          <Animated.View entering={FadeInUp.delay(210).duration(560)} style={styles.consoleShell}>
+            <View style={styles.console}>
+              <View style={styles.consoleHeader}>
+                <View>
+                  <Text style={styles.panelLabel}>Queue now</Text>
+                  <Text style={styles.panelValue}>7 active orders</Text>
+                </View>
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>Live</Text>
+                </View>
+              </View>
+
+              <View style={styles.featuredOrder}>
+                <View style={styles.orderIcon}>
+                  <Feather name="package" size={20} color={BRAND.blue} />
+                </View>
+                <View style={styles.orderCopy}>
+                  <Text style={styles.orderCode}>YD-410084</Text>
+                  <Text style={styles.orderMeta}>Ready for pickup - prescription attached</Text>
+                </View>
+                <Feather name="chevron-right" size={20} color="#95A2B5" />
+              </View>
+
+              <View style={styles.stats}>
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>3</Text>
+                  <Text style={styles.statLabel}>Paid</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>2</Text>
+                  <Text style={styles.statLabel}>Packed</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>4</Text>
+                  <Text style={styles.statLabel}>Support</Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+
+          <View style={styles.dutyGrid}>
+            {DUTIES.map((duty, index) => (
+              <Animated.View
+                key={duty.title}
+                entering={FadeInDown.delay(300 + index * 70).duration(440)}
+                style={styles.duty}
+              >
+                <View style={styles.dutyIcon}>
+                  <Feather name={duty.icon} size={18} color="#BEE9D2" />
+                </View>
+                <Text style={styles.dutyTitle}>{duty.title}</Text>
+                <Text style={styles.dutyBody}>{duty.body}</Text>
+              </Animated.View>
+            ))}
+          </View>
+
+          <Animated.View entering={FadeInUp.delay(520).duration(520)} style={styles.actions}>
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/(auth)/login')}
-              style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
-              <Text style={styles.ctaText}>Sign in to your counter</Text>
+              <Text style={styles.primaryText}>Sign in to workspace</Text>
               <Feather name="arrow-right" size={18} color={BRAND.blueDeep} />
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/(auth)/signup' as any)}
-              style={({ pressed }) => [styles.secondaryCta, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
             >
-              <Text style={styles.secondaryCtaText}>Have an invite code? Create account</Text>
+              <Text style={styles.secondaryText}>Create account with invite code</Text>
             </Pressable>
-          </BlurView>
-        </Animated.View>
+          </Animated.View>
 
-        <Text style={styles.legal}>
-          Staff accounts are issued by your pharmacy admin. Shopping for yourself? Use the yahadeen Pharm Go
-          customer app instead.
-        </Text>
+          <Text style={styles.footer}>
+            Use the customer app for shopping. Staff access is managed by pharmacy admins.
+          </Text>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BRAND.blueDeep },
-  safe: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACE.xl,
-    paddingBottom: SPACE.lg,
+  root: { flex: 1, backgroundColor: '#071126' },
+  safe: { flex: 1 },
+  topBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 230,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
   },
-
-  orb: { position: 'absolute', borderRadius: 999, opacity: 0.28 },
-  orbGreen: { width: 320, height: 320, top: -90, right: -110, backgroundColor: BRAND.green },
-  orbCyan: { width: 260, height: 260, bottom: 120, left: -120, backgroundColor: BRAND.blueGlint },
-
-  brand: { alignItems: 'center', marginTop: SPACE.xxl },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xl,
+    justifyContent: 'center',
+  },
+  brand: { alignItems: 'center' },
   logoTile: {
-    width: 84,
-    height: 84,
-    borderRadius: RADIUS.xl,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    elevation: 6,
   },
-  logo: { width: 66, height: 66 },
-  wordmark: {
-    marginTop: SPACE.md,
-    fontSize: 27,
+  logo: { width: 58, height: 58 },
+  wordmark: { marginTop: SPACE.md, fontSize: 20, fontWeight: '900', color: '#FFFFFF' },
+  appLabel: {
+    marginTop: 4,
+    fontSize: 12,
     fontWeight: '900',
-    letterSpacing: 1.6,
-    color: '#FFFFFF',
-  },
-  badge: {
-    marginTop: SPACE.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: RADIUS.pill,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.8,
+    color: '#AAB8D2',
     textTransform: 'uppercase',
-    color: '#FFFFFF',
   },
-
-  card: {
-    borderRadius: RADIUS.xl,
+  hero: { marginTop: SPACE.xl, alignItems: 'center' },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    backgroundColor: 'rgba(34,197,94,0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-    overflow: 'hidden',
-    padding: SPACE.xl,
+    borderColor: 'rgba(190,233,210,0.24)',
   },
-  cardOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(4,18,60,0.34)' },
-  headline: {
-    fontSize: 25,
-    fontWeight: '800',
+  roleBadgeText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#DDF6E8',
+    textTransform: 'uppercase',
+  },
+  title: {
+    marginTop: SPACE.lg,
+    maxWidth: 330,
+    textAlign: 'center',
+    fontSize: 34,
+    lineHeight: 39,
+    fontWeight: '900',
     color: '#FFFFFF',
-    lineHeight: 32,
-    letterSpacing: -0.4,
+    letterSpacing: 0,
   },
-
+  subtitle: {
+    marginTop: SPACE.md,
+    maxWidth: 338,
+    textAlign: 'center',
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '600',
+    color: '#B7C4D9',
+  },
   notice: {
     marginTop: SPACE.lg,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: SPACE.sm,
     padding: SPACE.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.24)',
+    borderColor: 'rgba(255,255,255,0.16)',
   },
-  noticeText: { flex: 1, fontSize: 12.5, fontWeight: '700', lineHeight: 18, color: '#FFFFFF' },
-
-  duties: { marginTop: SPACE.xl, gap: SPACE.lg },
-  duty: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start' },
-  dutyIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.sm,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+  noticeText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '800', color: '#FFFFFF' },
+  consoleShell: { marginTop: SPACE.xxl, alignItems: 'center' },
+  console: {
+    width: '100%',
+    maxWidth: 390,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    padding: SPACE.lg,
+    shadowColor: '#000000',
+    shadowOpacity: 0.25,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 8,
+  },
+  consoleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACE.md,
+  },
+  panelLabel: { fontSize: 12, fontWeight: '800', color: '#748096' },
+  panelValue: { marginTop: 2, fontSize: 22, fontWeight: '900', color: BRAND.blueDeep },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    backgroundColor: '#EEF8F2',
+  },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: BRAND.green },
+  liveText: { fontSize: 12, fontWeight: '900', color: '#158449' },
+  featuredOrder: {
+    marginTop: SPACE.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.md,
+    padding: SPACE.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#F4F7FC',
+  },
+  orderIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: RADIUS.md,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dutyText: { flex: 1 },
-  dutyTitle: { fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' },
-  dutyBody: {
-    marginTop: 2,
-    fontSize: 12.5,
-    fontWeight: '500',
-    lineHeight: 18,
-    color: 'rgba(255,255,255,0.72)',
+  orderCopy: { flex: 1 },
+  orderCode: { fontSize: 15, fontWeight: '900', color: BRAND.blueDeep },
+  orderMeta: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '700', color: '#657284' },
+  stats: { marginTop: SPACE.lg, flexDirection: 'row', gap: SPACE.sm },
+  stat: {
+    flex: 1,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#F8FAFD',
+    paddingVertical: SPACE.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5ECF6',
   },
-
-  cta: {
-    marginTop: SPACE.xxl,
-    minHeight: 54,
-    borderRadius: RADIUS.md,
+  statValue: { fontSize: 22, fontWeight: '900', color: BRAND.blueDeep },
+  statLabel: { marginTop: 2, fontSize: 11, fontWeight: '900', color: '#748096' },
+  dutyGrid: { marginTop: SPACE.xl, flexDirection: 'row', gap: SPACE.sm },
+  duty: {
+    flex: 1,
+    minHeight: 122,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(255,255,255,0.09)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    padding: SPACE.md,
+    alignItems: 'center',
+  },
+  dutyIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dutyTitle: { marginTop: SPACE.sm, fontSize: 13, fontWeight: '900', color: '#FFFFFF' },
+  dutyBody: {
+    marginTop: 4,
+    textAlign: 'center',
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '700',
+    color: '#B7C4D9',
+  },
+  actions: { marginTop: SPACE.xl, gap: SPACE.md },
+  primaryButton: {
+    minHeight: 58,
+    borderRadius: RADIUS.lg,
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACE.sm,
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5,
   },
-  ctaText: { fontSize: 15.5, fontWeight: '800', color: BRAND.blueDeep },
-  secondaryCta: {
-    marginTop: SPACE.md,
-    minHeight: 44,
-    borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.24)',
+  primaryText: { fontSize: 16, fontWeight: '900', color: BRAND.blueDeep },
+  secondaryButton: {
+    minHeight: 52,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
-  secondaryCtaText: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
-  pressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
-
-  legal: {
+  secondaryText: { fontSize: 15, fontWeight: '900', color: '#FFFFFF' },
+  pressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
+  footer: {
     marginTop: SPACE.lg,
     textAlign: 'center',
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.55)',
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: '#AAB8D2',
   },
 });

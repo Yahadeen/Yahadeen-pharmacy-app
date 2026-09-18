@@ -14,7 +14,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   INSERT INTO public.notifications (user_id, type, priority, title, message, data, is_read, read_at, created_at)
-  VALUES (p_user_id, p_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
+  VALUES (p_user_id, p_type::notification_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
 END;
 $$;
 
@@ -33,10 +33,11 @@ DECLARE
 BEGIN
   FOR admin_user IN
     SELECT id FROM public.users
-    WHERE role = 'admin'
+    WHERE role::text IN ('admin', 'super_admin')
+      AND is_active = true
   LOOP
     INSERT INTO public.notifications (user_id, type, priority, title, message, data, is_read, read_at, created_at)
-    VALUES (admin_user.id, p_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
+    VALUES (admin_user.id, p_type::notification_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
   END LOOP;
 END;
 $$;

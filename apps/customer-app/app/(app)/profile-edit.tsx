@@ -14,7 +14,6 @@ import { RADIUS, SPACE, TYPE, isNigerianPhone, normalizeNigerianPhone } from '@p
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -25,7 +24,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Entrance, Field, GlassButton, ScreenHeader, StickyBar } from '@/src/components';
+import { ConfirmModal, Entrance, Field, GlassButton, ScreenHeader, StickyBar } from '@/src/components';
 import { data } from '@/src/lib/data';
 import { useSession } from '@/src/state/SessionProvider';
 import { useToast } from '@/src/state/ToastProvider';
@@ -64,6 +63,7 @@ export default function ProfileEdit() {
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string; dateOfBirth?: string }>({});
   const [saving, setSaving] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const email = profile?.email ?? user?.email ?? null;
   const dirty =
@@ -104,10 +104,7 @@ export default function ProfileEdit() {
       router.back();
       return;
     }
-    Alert.alert('Discard changes?', 'Your edits will not be saved.', [
-      { text: 'Keep editing', style: 'cancel' },
-      { text: 'Discard', style: 'destructive', onPress: () => router.back() },
-    ]);
+    setShowDiscardModal(true);
   };
 
   const save = async () => {
@@ -338,6 +335,17 @@ export default function ProfileEdit() {
           onPress={save}
         />
       </StickyBar>
+
+      <ConfirmModal
+        visible={showDiscardModal}
+        title="Discard changes?"
+        message="Your edits will not be saved."
+        confirmText="Discard"
+        cancelText="Keep editing"
+        destructive
+        onConfirm={() => router.back()}
+        onCancel={() => setShowDiscardModal(false)}
+      />
     </SafeAreaView>
   );
 }

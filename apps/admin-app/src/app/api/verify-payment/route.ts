@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/server/supabase';
 import { verifyTransaction } from '@/server/paystack';
+import { PushService } from '@/server/services/push.service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,17 +69,42 @@ export async function POST(request: NextRequest) {
     console.log('Payment updated to success');
 
     // Update order status to paid
-    const { error: orderError } = await supabaseAdmin
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .update({ 
         status: 'paid',
       })
-      .eq('id', payment.order_id);
+      .eq('id', payment.order_id)
+      .select('id, code, customer_id')
+      .single();
 
     if (orderError) {
       console.error('Error updating order:', orderError);
     } else {
       console.log('Order updated to paid');
+      try {
+        await PushService.sendToUser(order.customer_id, {
+          title: 'Payment Successful',
+          body: `Payment for order #${order.code} was successful.`,
+          data: {
+            type: 'payment_successful',
+            order_id: order.id,
+            screen: 'order/[id]',
+          },
+        });
+
+        await PushService.sendToRoles(['attendant', 'admin', 'super_admin'], {
+          title: 'Order Paid',
+          body: `Order #${order.code} has been paid and is ready for processing.`,
+          data: {
+            type: 'payment_successful',
+            order_id: order.id,
+            screen: 'order/[id]',
+          },
+        });
+      } catch (pushError) {
+        console.error('Failed to send payment push notification:', pushError);
+      }
     }
 
     return NextResponse.json({ success: true, payment });

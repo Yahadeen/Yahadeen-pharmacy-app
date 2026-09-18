@@ -1,18 +1,17 @@
 import { supabaseAdmin } from '../supabase';
 import { AuthContext } from '../auth';
 import crypto from 'crypto';
+import { PushService } from './push.service';
 
 export interface Payment {
   id: string;
   order_id: string;
-  provider: string;
-  provider_ref?: string;
+  payment_method: string;
+  payment_reference?: string;
   status: string;
   amount_kobo: number;
-  raw?: any;
   created_at: string;
-  updated_at: string;
-  verified_at?: string;
+  paid_at?: string;
 }
 
 export interface InitPaymentInput {
@@ -81,11 +80,10 @@ export class PaymentService {
     // Create payment record
     await supabaseAdmin.from('payments').insert({
       order_id: input.order_id,
-      provider: 'paystack',
-      provider_ref: data.data.reference,
+      payment_method: 'paystack',
+      payment_reference: data.data.reference,
       status: 'pending',
       amount_kobo: input.amount_kobo,
-      raw: data.data,
     });
 
     return {
@@ -127,13 +125,11 @@ export class PaymentService {
    */
   private static async handleSuccessfulPayment(paystackData: any): Promise<void> {
     const reference = paystackData.reference;
-    const amount = paystackData.amount; // in kobo
-
     // Find payment by reference
     const { data: payment, error: paymentError } = await supabaseAdmin
       .from('payments')
       .select('*')
-      .eq('provider_ref', reference)
+      .eq('payment_reference', reference)
       .single();
 
     if (paymentError || !payment) {
@@ -150,8 +146,7 @@ export class PaymentService {
       .from('payments')
       .update({
         status: 'success',
-        verified_at: new Date().toISOString(),
-        raw: paystackData,
+        paid_at: new Date().toISOString(),
       })
       .eq('id', payment.id);
 
@@ -164,8 +159,37 @@ export class PaymentService {
       })
       .eq('id', payment.order_id);
 
-    // Decrement stock
-    await this.decrementStock(payment.order_id);
+    try {
+      const { data: order } = await supabaseAdmin
+        .from('orders')
+        .select('id, code, customer_id')
+        .eq('id', payment.order_id)
+        .single();
+
+      if (order) {
+        await PushService.sendToUser(order.customer_id, {
+          title: 'Payment Successful',
+          body: `Payment for order #${order.code} was successful.`,
+          data: {
+            type: 'payment_successful',
+            order_id: order.id,
+            screen: 'order/[id]',
+          },
+        });
+
+        await PushService.sendToRoles(['attendant', 'admin', 'super_admin'], {
+          title: 'Order Paid',
+          body: `Order #${order.code} has been paid and is ready for processing.`,
+          data: {
+            type: 'payment_successful',
+            order_id: order.id,
+            screen: 'order/[id]',
+          },
+        });
+      }
+    } catch (pushError) {
+      console.error('Failed to send payment push notification:', pushError);
+    }
   }
 
   /**
@@ -178,15 +202,14 @@ export class PaymentService {
       .from('payments')
       .update({
         status: 'failed',
-        raw: paystackData,
       })
-      .eq('provider_ref', reference);
+      .eq('payment_reference', reference);
 
     // Update order status
     const { data: payment } = await supabaseAdmin
       .from('payments')
       .select('order_id')
-      .eq('provider_ref', reference)
+      .eq('payment_reference', reference)
       .single();
 
     if (payment) {
@@ -194,25 +217,29 @@ export class PaymentService {
         .from('orders')
         .update({ status: 'payment_failed' })
         .eq('id', payment.order_id);
-    }
-  }
 
-  /**
-   * Decrement stock for order items
-   */
-  private static async decrementStock(orderId: string): Promise<void> {
-    const { data: items } = await supabaseAdmin
-      .from('order_items')
-      .select('product_id, qty')
-      .eq('order_id', orderId);
+      try {
+        const { data: order } = await supabaseAdmin
+          .from('orders')
+          .select('id, code, customer_id')
+          .eq('id', payment.order_id)
+          .single();
 
-    if (!items) return;
-
-    for (const item of items) {
-      await supabaseAdmin.rpc('decrement_stock', {
-        product_id: item.product_id,
-        amount: item.qty,
-      });
+        if (order) {
+          await PushService.sendToUser(order.customer_id, {
+            title: 'Payment Failed',
+            body: `Payment for order #${order.code} failed. Please try again.`,
+            data: {
+              type: 'order_status_updated',
+              order_id: order.id,
+              status: 'payment_failed',
+              screen: 'order/[id]',
+            },
+          });
+        }
+      } catch (pushError) {
+        console.error('Failed to send payment failure push notification:', pushError);
+      }
     }
   }
 

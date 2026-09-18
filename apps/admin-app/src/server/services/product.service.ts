@@ -52,6 +52,7 @@ export class ProductService {
     category_id?: string;
     search?: string;
     is_active?: boolean;
+    in_stock_only?: boolean;
     limit?: number;
     offset?: number;
     sort?: string;
@@ -87,6 +88,10 @@ export class ProductService {
 
     if (filters?.is_active !== undefined) {
       query = query.eq('is_active', filters.is_active);
+    }
+
+    if (filters?.in_stock_only) {
+      query = query.gt('stock_quantity', 0);
     }
 
     if (filters?.limit) {

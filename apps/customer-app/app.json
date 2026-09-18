@@ -22,7 +22,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
         {
@@ -72,6 +71,14 @@
           "photosPermission": "yahadeen pharm go needs access to your photos so you can upload a prescription.",
           "cameraPermission": "yahadeen pharm go needs your camera so you can photograph a prescription."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#0036B6",
+          "defaultChannel": "orders"
+        }
       ]
     ],
     "experiments": {
@@ -79,8 +86,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
-      }
-    }
+        "projectId": "32382f78-5b52-4447-8ccf-a8b41a13aca0"
+      },
+      "router": {}
+    },
+    "owner": "yahadeens-team"
   }
 }

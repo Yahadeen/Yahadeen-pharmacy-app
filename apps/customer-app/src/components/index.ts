@@ -33,4 +33,5 @@ export {
   StickyBar,
   TAB_BAR_CLEARANCE,
 } from './Ui';
-export { ConfirmModal, type ConfirmModalProps } from './Modal';
+export { ConfirmModal, ActionModal, type ConfirmModalProps, type ActionModalProps } from './Modal';
+export { PrescriptionPreviewModal } from './PrescriptionPreviewModal';

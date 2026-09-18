@@ -16,7 +16,7 @@ BEGIN
     WHERE role = 'admin'
   LOOP
     INSERT INTO public.notifications (user_id, type, priority, title, message, data, is_read, read_at, created_at)
-    VALUES (admin_user.id, p_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
+    VALUES (admin_user.id, p_type::notification_type, 'medium', p_title, p_message, p_data, false, NULL, NOW());
   END LOOP;
 END;
 $$;

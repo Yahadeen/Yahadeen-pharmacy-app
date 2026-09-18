@@ -14,11 +14,11 @@ interface DetailsModalProps {
 export function DetailsModal({ isOpen, onClose, title, children, size = 'md' }: DetailsModalProps) {
   if (!isOpen) return null;
 
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
+  const sizeWidths = {
+    sm: 448,
+    md: 560,
+    lg: 720,
+    xl: 960,
   };
 
   return (
@@ -42,7 +42,7 @@ export function DetailsModal({ isOpen, onClose, title, children, size = 'md' }: 
           borderRadius: 16,
           padding: 24,
           width: '90%',
-          maxWidth: sizeClasses[size],
+          maxWidth: sizeWidths[size],
           maxHeight: '90vh',
           overflowY: 'auto',
           boxShadow: 'var(--shadow)',

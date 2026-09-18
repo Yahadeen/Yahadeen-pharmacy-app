@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const contentType = request.headers.get('content-type');
+    const isPrescription = request.headers.get('x-upload-type') === 'prescription';
     let fileBuffer: Buffer;
     let fileName: string;
     let mimeType: string;
@@ -26,9 +27,18 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      const allowedTypes = isPrescription
+        ? ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
+        : ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: isPrescription
+              ? 'Invalid file type. Only JPEG, PNG, WebP, GIF, and PDF are allowed.'
+              : 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.',
+          },
+          { status: 400 },
+        );
       }
 
       // Validate file size (max 5MB)
@@ -54,9 +64,18 @@ export async function POST(request: NextRequest) {
       mimeType = providedMimeType || 'image/jpeg';
 
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      const allowedTypes = isPrescription
+        ? ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
+        : ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedTypes.includes(mimeType)) {
-        return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: isPrescription
+              ? 'Invalid file type. Only JPEG, PNG, WebP, GIF, and PDF are allowed.'
+              : 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.',
+          },
+          { status: 400 },
+        );
       }
 
       // Handle data URL prefix if present
@@ -115,6 +134,28 @@ export async function POST(request: NextRequest) {
     // Generate unique filename for support attachments
     const fileExtension = fileName.split('.').pop() || 'jpg';
     const uniqueFileName = `support/${crypto.randomUUID()}.${fileExtension}`;
+
+    if (isPrescription) {
+      // Use prescriptions folder for prescription uploads
+      const prescriptionFileName = `prescriptions/${crypto.randomUUID()}.${fileExtension}`;
+      
+      const prescriptionCommand = new PutObjectCommand({
+        Bucket: r2Bucket,
+        Key: prescriptionFileName,
+        Body: fileBuffer,
+        ContentType: mimeType,
+      });
+
+      await s3Client.send(prescriptionCommand);
+
+      const prescriptionPublicUrl = `${r2PublicUrl}/${prescriptionFileName}`;
+
+      return NextResponse.json({
+        success: true,
+        url: prescriptionPublicUrl,
+        id: prescriptionFileName,
+      });
+    }
 
     // Upload to R2 using AWS SDK
     const command = new PutObjectCommand({

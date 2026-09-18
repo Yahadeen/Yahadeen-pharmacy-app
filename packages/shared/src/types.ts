@@ -148,7 +148,7 @@ export interface Order {
   dispatched_at: string | null;
   delivered_at: string | null;
   cancelled_at: string | null;
-  cancel_reason: string | null;
+  cancellation_reason: string | null;
 }
 
 /** Order joined with everything a detail screen needs in one round trip. */

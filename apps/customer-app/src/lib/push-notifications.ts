@@ -6,8 +6,13 @@ import { supabase } from './supabase';
 // Check if running in Expo Go (push notifications not supported in Expo Go on Android)
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// Configure notification handler only if not in Expo Go
-if (!isExpoGo) {
+// Configure notification handler (lazy - only called when needed)
+let notificationHandlerConfigured = false;
+
+function configureNotificationHandler() {
+  if (notificationHandlerConfigured) return;
+  if (isExpoGo) return; // Skip in Expo Go
+
   try {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
@@ -18,6 +23,7 @@ if (!isExpoGo) {
         shouldShowList: true,
       }),
     });
+    notificationHandlerConfigured = true;
   } catch (error) {
     console.warn('Failed to set notification handler:', error);
   }
@@ -29,6 +35,9 @@ export async function registerForPushNotifications() {
     console.log('Push notifications not available in Expo Go. Use a development build.');
     return null;
   }
+
+  // Configure notification handler
+  configureNotificationHandler();
 
   let token: string | null = null;
 
@@ -55,9 +64,20 @@ export async function registerForPushNotifications() {
       return null;
     }
 
+    // Get projectId from Constants
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.easConfig?.projectId ??
+      process.env.EXPO_PUBLIC_EXPO_PROJECT_ID;
+
+    if (!projectId) {
+      console.log('Project ID not found - skipping push token registration');
+      return null;
+    }
+
     token = (
       await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PROJECT_ID,
+        projectId,
       })
     ).data;
   } catch (error) {

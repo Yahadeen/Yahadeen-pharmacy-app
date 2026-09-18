@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, ScrollView, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, ScrollView, Image, Dimensions, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -49,6 +49,12 @@ export default function SupportChatScreen() {
       supabase.channel(`support_messages:${id}`).unsubscribe();
     };
   }, [id]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    }
+  }, [messages]);
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -188,7 +194,8 @@ export default function SupportChatScreen() {
 
       if (response.ok) {
         setMessages(data.messages || []);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+        // Scroll to end after messages are loaded
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 300);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -211,10 +218,26 @@ export default function SupportChatScreen() {
         (payload) => {
           const newMessage = payload.new as SupportMessage;
           // Check if message already exists to avoid duplicates
+          // Also check if it's our own optimistic message to avoid duplication
           setMessages((prev) => {
-            if (prev.some(m => m.id === newMessage.id)) {
+            const isDuplicate = prev.some(m => m.id === newMessage.id);
+            const isOurOptimistic = prev.some(m => m.id.startsWith('temp-') && m.sender_id === currentUserId);
+            
+            if (isDuplicate) {
               return prev;
             }
+            
+            // If this is a real message and we have a matching optimistic message, replace it
+            if (isOurOptimistic && newMessage.sender_id === currentUserId) {
+              const optimisticIndex = prev.findIndex(m => m.id.startsWith('temp-'));
+              if (optimisticIndex >= 0) {
+                const updated = [...prev];
+                updated[optimisticIndex] = newMessage;
+                return updated;
+              }
+            }
+            
+            // Otherwise add the new message
             return [...prev, newMessage];
           });
           setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
@@ -364,12 +387,24 @@ export default function SupportChatScreen() {
 
   const renderMessage = ({ item }: { item: SupportMessage }) => {
     const isOwnMessage = item.sender_id === currentUserId;
-    const roleLabel = SENDER_ROLE_LABELS[item.sender_role] || item.sender_role;
+    
+    // Extract sender information from the joined data
+    const senderName = item.sender?.full_name || 'Unknown';
+    const senderRole = item.sender?.role || item.sender_role;
+    
+    // Map user roles to display labels
+    const roleDisplayMap: Record<string, string> = {
+      customer: 'Customer',
+      attendant: 'Attendant',
+      admin: 'Admin',
+      super_admin: 'Admin',
+    };
+    const displayRole = roleDisplayMap[senderRole] || SENDER_ROLE_LABELS[item.sender_role] || senderRole;
 
     return (
       <View style={[styles.messageBubble, isOwnMessage ? styles.ownMessage : styles.otherMessage, isOwnMessage ? { backgroundColor: colors.primary } : { backgroundColor: colors.surfaceAlt }]}>
         <Text style={[styles.senderName, isOwnMessage ? styles.ownSenderName : styles.otherSenderName, { color: isOwnMessage ? colors.onPrimary : colors.mutedText }]}>
-          {item.sender?.full_name || 'Unknown'} ({roleLabel})
+          {senderName} ({displayRole})
         </Text>
         <Text style={[styles.messageText, isOwnMessage ? styles.ownMessageText : styles.otherMessageText, { color: isOwnMessage ? colors.onPrimary : colors.text }]}>
           {item.message}
@@ -676,7 +711,7 @@ export default function SupportChatScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </Screen>
+    </SafeAreaView>
   );
 }
 

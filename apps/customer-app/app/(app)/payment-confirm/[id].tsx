@@ -168,10 +168,6 @@ export default function PaymentConfirmScreen() {
             <Text style={styles.totalLabel}>Delivery Fee:</Text>
             <Text style={styles.totalValue}>{formatNaira(order.delivery_fee_kobo)}</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tax:</Text>
-            <Text style={styles.totalValue}>{formatNaira(order.tax_kobo)}</Text>
-          </View>
           <View style={[styles.totalRow, styles.finalTotal]}>
             <Text style={styles.finalTotalLabel}>Total:</Text>
             <Text style={styles.finalTotalValue}>{formatNaira(order.total_kobo)}</Text>

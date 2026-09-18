@@ -2,44 +2,46 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { RADIUS, SPACE, TYPE, SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_PRIORITY_LABELS, SUPPORT_TICKET_STATUS_COLORS, SUPPORT_TICKET_PRIORITY_COLORS, type SupportTicket } from '@pharmago/shared';
 import { useAsync } from '@/src/hooks/useAsync';
 import { data } from '@/src/lib/data';
-import { Loading, EmptyState } from '@/src/components';
-import { SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_PRIORITY_LABELS, SUPPORT_TICKET_STATUS_COLORS, SUPPORT_TICKET_PRIORITY_COLORS, type SupportTicket } from '@pharmago/shared';
+import { Loading, EmptyState, ScreenHeader } from '@/src/components';
+import { useTheme } from '@/src/theme';
 
 export default function SupportTabScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { data: tickets, loading } = useAsync(() => data.supportTickets(), []);
 
   const renderTicket = ({ item }: { item: SupportTicket }) => (
     <TouchableOpacity
-      style={styles.ticketCard}
+      style={[styles.ticketCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
       onPress={() => router.push(`/support/${item.id}` as any)}
     >
       <View style={styles.ticketHeader}>
-        <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
+        <Text style={[styles.ticketNumber, { color: colors.text }]}>{item.ticket_number}</Text>
         <View style={[styles.statusBadge, { backgroundColor: SUPPORT_TICKET_STATUS_COLORS[item.status] }]}>
           <Text style={styles.statusText}>{SUPPORT_TICKET_STATUS_LABELS[item.status]}</Text>
         </View>
       </View>
 
-      <Text style={styles.subject}>{item.subject}</Text>
+      <Text style={[styles.subject, { color: colors.text }]}>{item.subject}</Text>
 
       <View style={styles.ticketMeta}>
         <View style={[styles.priorityBadge, { backgroundColor: SUPPORT_TICKET_PRIORITY_COLORS[item.priority] }]}>
           <Text style={styles.priorityText}>{SUPPORT_TICKET_PRIORITY_LABELS[item.priority]}</Text>
         </View>
-        <Text style={styles.orderText}>Order #{item.orders?.code}</Text>
+        <Text style={[styles.orderText, { color: colors.mutedText }]}>Order #{item.orders?.code}</Text>
       </View>
 
       <View style={styles.customerInfo}>
-        <Feather name="user" size={14} color="#6b7280" />
-        <Text style={styles.customerName}>
+        <Feather name="user" size={14} color={colors.mutedText} />
+        <Text style={[styles.customerName, { color: colors.mutedText }]}>
           {item.customer?.full_name}
         </Text>
       </View>
 
-      <Text style={styles.dateText}>
+      <Text style={[styles.dateText, { color: colors.faintText }]}>
         {new Date(item.created_at).toLocaleDateString()}
       </Text>
     </TouchableOpacity>
@@ -50,9 +52,12 @@ export default function SupportTabScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Support</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.gutter}>
+        <ScreenHeader
+          title="Support"
+          subtitle={tickets?.length ? `${tickets.length} ticket${tickets.length === 1 ? '' : 's'}` : 'No tickets'}
+        />
       </View>
 
       {!tickets || tickets.length === 0 ? (
@@ -79,47 +84,35 @@ export default function SupportTabScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
-  header: {
-    backgroundColor: '#022EAD',
-    padding: 16,
-    paddingTop: 20,
-  },
-  headerText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
+  gutter: {
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.md,
   },
   list: {
-    padding: 16,
+    paddingHorizontal: SPACE.xl,
+    paddingBottom: SPACE.xl,
   },
   ticketCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: RADIUS.lg,
+    padding: SPACE.lg,
+    marginBottom: SPACE.md,
+    borderWidth: 1,
   },
   ticketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACE.sm,
   },
   ticketNumber: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACE.sm,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: RADIUS.pill,
   },
   statusText: {
     color: '#fff',
@@ -129,19 +122,18 @@ const styles = StyleSheet.create({
   subject: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    marginBottom: SPACE.sm,
   },
   ticketMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACE.sm,
   },
   priorityBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACE.sm,
     paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
+    borderRadius: RADIUS.pill,
+    marginRight: SPACE.sm,
   },
   priorityText: {
     color: '#fff',
@@ -150,25 +142,22 @@ const styles = StyleSheet.create({
   },
   orderText: {
     fontSize: 13,
-    color: '#6b7280',
   },
   customerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: SPACE.sm,
   },
   customerName: {
     fontSize: 13,
-    color: '#6b7280',
   },
   dateText: {
     fontSize: 12,
-    color: '#9ca3af',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
-    padding: 32,
+    padding: SPACE.xl,
   },
 });

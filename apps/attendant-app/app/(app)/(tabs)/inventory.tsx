@@ -60,6 +60,10 @@ export default function Inventory() {
     }, [shelfList.refresh]),
   );
 
+  const handleRefresh = useCallback(() => {
+    void shelfList.refresh();
+  }, [shelfList.refresh]);
+
   const items = shelfList.data ?? [];
 
   const counts = useMemo(() => {
@@ -175,7 +179,7 @@ export default function Inventory() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshing={shelfList.refreshing}
-          onRefresh={shelfList.refresh}
+          onRefresh={handleRefresh}
           ItemSeparatorComponent={Gap}
           renderItem={({ item, index }) => (
             <Entrance delay={Math.min(index, 8) * 45}>

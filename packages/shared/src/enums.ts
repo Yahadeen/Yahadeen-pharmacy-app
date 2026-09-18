@@ -44,8 +44,8 @@ export const ORDER_STATUS_FLOW: Record<OrderStatus, readonly OrderStatus[]> = {
   preparing: ['packed', 'cancelled'],
   packed: ['ready_for_pickup', 'cancelled'],
   ready_for_pickup: ['picked_up', 'cancelled'],
-  picked_up: ['out_for_delivery'],
-  out_for_delivery: ['delivered'],
+  picked_up: ['out_for_delivery'], // Cannot cancel once picked up - it's on the way
+  out_for_delivery: ['delivered'], // Cannot cancel once out for delivery
   delivered: [],
   cancelled: [],
 };
@@ -124,6 +124,7 @@ export const ORDER_TIMELINE: readonly OrderStatus[] = [
   'preparing',
   'packed',
   'ready_for_pickup',
+  'picked_up',
   'out_for_delivery',
   'delivered',
 ];

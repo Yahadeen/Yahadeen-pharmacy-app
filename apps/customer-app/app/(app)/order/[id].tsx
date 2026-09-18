@@ -27,6 +27,7 @@ import {
   GlassButton,
   Loading,
   OrderTimeline,
+  PrescriptionPreviewModal,
   ProductRow,
   ScreenHeader,
   StatusPill,
@@ -59,6 +60,7 @@ export default function OrderDetailScreen() {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [prescriptionPreviewOpen, setPrescriptionPreviewOpen] = useState(false);
 
   const view = useAsync(() => data.order(id), [id]);
   const order = view.data;
@@ -294,6 +296,7 @@ export default function OrderDetailScreen() {
             <OrderTimeline order={order} />
           </View>
 
+
           <Text style={[TYPE.heading, styles.sectionTitle, { color: colors.text }]}>
             {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
           </Text>
@@ -319,7 +322,16 @@ export default function OrderDetailScreen() {
               <Text style={[TYPE.heading, styles.sectionTitle, { color: colors.text }]}>
                 Prescription
               </Text>
-              <View style={[styles.card, styles.rxCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open prescription preview"
+                onPress={() => setPrescriptionPreviewOpen(true)}
+                style={({ pressed }) => [
+                  styles.card,
+                  styles.rxCard,
+                  { backgroundColor: pressed ? colors.surfaceAlt : colors.surface, borderColor: colors.border },
+                ]}
+              >
                 {order.prescription_url.startsWith('http') ? (
                   <Image
                     source={{ uri: order.prescription_url }}
@@ -337,7 +349,8 @@ export default function OrderDetailScreen() {
                     A licensed pharmacist reviews this before your items are dispensed.
                   </Text>
                 </View>
-              </View>
+                <Feather name="maximize-2" size={16} color={colors.faintText} />
+              </Pressable>
             </>
           )}
 
@@ -423,6 +436,11 @@ export default function OrderDetailScreen() {
         onCancel={() => setShowCancelModal(false)}
         loading={busy}
       />
+      <PrescriptionPreviewModal
+        visible={prescriptionPreviewOpen}
+        url={order.prescription_url}
+        onClose={() => setPrescriptionPreviewOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -477,6 +495,24 @@ const styles = StyleSheet.create({
   sectionTitle: { marginTop: SPACE.xxl, marginBottom: SPACE.md },
   card: { padding: SPACE.lg, borderRadius: RADIUS.lg, borderWidth: 1 },
   itemGap: { marginBottom: SPACE.sm },
+
+  cancelReason: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACE.md,
+    marginTop: SPACE.md,
+    padding: SPACE.lg,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+  },
+  cancelIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelReasonText: { marginTop: 3, lineHeight: 21 },
 
   rxCard: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   rxThumb: { width: 52, height: 52, borderRadius: RADIUS.sm },

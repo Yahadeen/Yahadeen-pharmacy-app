@@ -9,8 +9,6 @@ import { SessionProvider, useSession } from '@/src/state/SessionProvider';
 import { ToastProvider } from '@/src/state/ToastProvider';
 import { ThemeProvider, useTheme } from '@/src/theme';
 
-export { ErrorBoundary } from 'expo-router';
-
 // Hold the native splash until the stored session has been read, so the app never
 // flashes the welcome screen at someone who is already signed in.
 void SplashScreen.preventAutoHideAsync();

@@ -28,6 +28,7 @@ import {
   Entrance,
   ProductRow,
   Screen,
+  ScreenHeader,
   Skeleton,
   TAB_BAR_CLEARANCE,
 } from '@/src/components';
@@ -89,19 +90,19 @@ export default function Search() {
 
   return (
     <Screen padded={false}>
-      <View style={[styles.bar, { borderBottomColor: colors.border }]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          hitSlop={10}
-          onPress={() => router.back()}
-          style={styles.back}
-        >
-          <Feather name="chevron-left" size={24} color={colors.text} />
-        </Pressable>
+      <View style={styles.head}>
+        <ScreenHeader
+          title="Search"
+          subtitle={
+            results.loading
+              ? 'Searching…'
+              : `${results.data?.total ?? 0} ${results.data?.total === 1 ? 'result' : 'results'}`
+          }
+        />
+
         <View
           style={[
-            styles.inputBox,
+            styles.searchBox,
             { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
           ]}
         >
@@ -114,7 +115,7 @@ export default function Search() {
             placeholderTextColor={colors.faintText}
             returnKeyType="search"
             autoCorrect={false}
-            style={[styles.input, { color: colors.text }]}
+            style={[styles.searchInput, { color: colors.text }]}
           />
           {!!query && (
             <Pressable
@@ -127,47 +128,57 @@ export default function Search() {
             </Pressable>
           )}
         </View>
-      </View>
 
-      <FlatList
-        horizontal
-        data={cats.data ?? []}
-        keyExtractor={(c) => c.id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipRail}
-        ListHeaderComponent={
-          <Chip label="All" active={!category} onPress={() => setCategory(null)} />
-        }
-        renderItem={({ item }) => (
-          <Chip
-            label={item.name}
-            active={category === item.slug}
-            onPress={() => setCategory(category === item.slug ? null : item.slug)}
-          />
-        )}
-      />
+        <FlatList
+          horizontal
+          data={cats.data ?? []}
+          keyExtractor={(c) => c.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRail}
+          ListHeaderComponent={
+            <Chip label="All" active={!category} onPress={() => setCategory(null)} />
+          }
+          renderItem={({ item }) => (
+            <Chip
+              label={item.name}
+              active={category === item.slug}
+              onPress={() => setCategory(category === item.slug ? null : item.slug)}
+            />
+          )}
+        />
 
-      <View style={styles.toolbar}>
-        <Text style={[TYPE.caption, { color: colors.mutedText }]}>
-          {results.loading
-            ? 'Searching…'
-            : `${results.data?.total ?? 0} ${results.data?.total === 1 ? 'result' : 'results'}`}
-        </Text>
-        <View style={styles.toolbarRight}>
-          <Toggle
-            label="In stock"
-            active={inStockOnly}
+        <View style={styles.filtersRow}>
+          <Pressable
+            style={[
+              styles.filterChip,
+              { backgroundColor: inStockOnly ? colors.primarySoft : colors.surfaceAlt, borderColor: colors.border },
+            ]}
             onPress={() => setInStockOnly((v) => !v)}
-          />
-          <Toggle
-            label={SORTS.find((s) => s.key === sort)!.label}
-            icon="sliders"
-            active={sort !== 'relevance'}
+          >
+            <Feather
+              name={inStockOnly ? 'check-circle' : 'circle'}
+              size={14}
+              color={inStockOnly ? colors.primary : colors.mutedText}
+            />
+            <Text style={[styles.filterChipText, { color: inStockOnly ? colors.primary : colors.mutedText }]}>
+              In stock
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.filterChip,
+              { backgroundColor: sort !== 'relevance' ? colors.primarySoft : colors.surfaceAlt, borderColor: colors.border },
+            ]}
             onPress={() => {
               const next = SORTS[(SORTS.findIndex((s) => s.key === sort) + 1) % SORTS.length];
               setSort(next.key);
             }}
-          />
+          >
+            <Feather name="sliders" size={14} color={sort !== 'relevance' ? colors.primary : colors.mutedText} />
+            <Text style={[styles.filterChipText, { color: sort !== 'relevance' ? colors.primary : colors.mutedText }]}>
+              {SORTS.find((s) => s.key === sort)!.label}
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -191,7 +202,13 @@ export default function Search() {
             <Text style={[TYPE.label, { color: colors.mutedText }]}>Try one of these</Text>
             <View style={styles.suggestWrap}>
               {SUGGESTIONS.map((s) => (
-                <Chip key={s} label={s} active={false} onPress={() => setQuery(s)} />
+                <Pressable
+                  key={s}
+                  style={[styles.suggestionChip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+                  onPress={() => setQuery(s)}
+                >
+                  <Text style={[TYPE.caption, { color: colors.mutedText }]}>{s}</Text>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -199,7 +216,7 @@ export default function Search() {
           <EmptyState
             icon="search"
             title="Nothing matched"
-            message={`We could not find anything for “${debounced || 'those filters'}”. Try a different spelling or a broader term.`}
+            message={`We could not find anything for "${debounced || 'those filters'}". Try a different spelling or a broader term.`}
             actionLabel="Clear filters"
             onAction={() => {
               setQuery('');
@@ -216,10 +233,11 @@ export default function Search() {
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={Gap}
           renderItem={({ item, index }) => {
             const state = stockState(item.quantity, item.low_stock_threshold);
             return (
-              <Entrance delay={Math.min(index, 6) * 45} distance={10} style={styles.rowGap}>
+              <Entrance delay={Math.min(index, 6) * 45} distance={10}>
                 <ProductRow
                   name={item.name}
                   packSize={item.pack_size}
@@ -283,59 +301,20 @@ function Chip({
   );
 }
 
-function Toggle({
-  label,
-  icon,
-  active,
-  onPress,
-}: {
-  label: string;
-  icon?: keyof typeof Feather.glyphMap;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const { colors } = useTheme();
-  const fg = active ? colors.primary : colors.mutedText;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      hitSlop={6}
-      onPress={onPress}
-      style={[
-        styles.toggle,
-        { backgroundColor: active ? colors.primarySoft : colors.surfaceAlt },
-      ]}
-    >
-      {!!icon && <Feather name={icon} size={12} color={fg} />}
-      <Text style={[styles.toggleText, { color: fg }]}>{label}</Text>
-    </Pressable>
-  );
-}
+const Gap = () => <View style={styles.gap} />;
 
 const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACE.xs,
-    paddingLeft: SPACE.sm,
-    paddingRight: SPACE.xl,
-    paddingBottom: SPACE.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  back: { padding: SPACE.xs },
-  inputBox: {
-    flex: 1,
+  head: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.md },
+  searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACE.sm,
-    minHeight: 46,
-    paddingHorizontal: SPACE.md,
-    borderRadius: RADIUS.pill,
+    minHeight: 48,
+    paddingHorizontal: SPACE.lg,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
   },
-  input: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: SPACE.sm },
-
+  searchInput: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: SPACE.md },
   chipRail: { gap: SPACE.sm, paddingHorizontal: SPACE.xl, paddingVertical: SPACE.md },
   chip: {
     paddingHorizontal: SPACE.md,
@@ -343,27 +322,28 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     borderWidth: 1,
   },
-
-  toolbar: {
+  filtersRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACE.xl,
-    paddingBottom: SPACE.md,
+    gap: SPACE.sm,
+    marginBottom: SPACE.md,
   },
-  toolbarRight: { flexDirection: 'row', gap: SPACE.sm },
-  toggle: {
+  filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     paddingHorizontal: SPACE.md,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: RADIUS.pill,
+    borderWidth: 1,
   },
-  toggleText: { fontSize: 11.5, fontWeight: '800' },
+  filterChipText: { fontSize: 12, fontWeight: '600' },
 
-  list: { paddingHorizontal: SPACE.xl, paddingBottom: TAB_BAR_CLEARANCE },
-  rowGap: { marginBottom: SPACE.sm },
+  list: {
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.xs,
+    paddingBottom: TAB_BAR_CLEARANCE,
+  },
+  gap: { height: SPACE.sm },
   skel: { marginBottom: SPACE.sm },
   add: {
     width: 32,
@@ -375,4 +355,10 @@ const styles = StyleSheet.create({
 
   suggestBox: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.xl, gap: SPACE.md },
   suggestWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm },
+  suggestionChip: {
+    paddingHorizontal: SPACE.md,
+    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+  },
 });

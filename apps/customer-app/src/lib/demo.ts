@@ -290,7 +290,7 @@ export const demoOrders: OrderDetail[] = [
     dispatched_at: hoursAgo(1),
     delivered_at: null,
     cancelled_at: null,
-    cancel_reason: null,
+    cancellation_reason: null,
     items: [snapshot('p1', 2), snapshot('p2', 1)],
     payment: {
       id: 'pay1',
@@ -338,7 +338,7 @@ export const demoOrders: OrderDetail[] = [
     dispatched_at: null,
     delivered_at: null,
     cancelled_at: null,
-    cancel_reason: null,
+    cancellation_reason: null,
     items: [snapshot('p3', 1)],
     payment: null,
     delivery: null,
@@ -365,7 +365,7 @@ export const demoOrders: OrderDetail[] = [
     dispatched_at: daysAgo(6),
     delivered_at: daysAgo(5),
     cancelled_at: null,
-    cancel_reason: null,
+    cancellation_reason: null,
     items: [snapshot('p4', 1), snapshot('p8', 1)],
     payment: {
       id: 'pay3',
@@ -413,7 +413,7 @@ export const demoNotifications: AppNotification[] = [
     id: 'n1',
     user_id: 'demo-user',
     title: 'Your order is on the way',
-    body: 'PG-4F2A19 left the pharmacy. Chidi is about 22 minutes away.',
+    message: 'PG-4F2A19 left the pharmacy. Chidi is about 22 minutes away.',
     data: { kind: 'order', id: 'o1' },
     read_at: null,
     created_at: hoursAgo(1),
@@ -422,7 +422,7 @@ export const demoNotifications: AppNotification[] = [
     id: 'n2',
     user_id: 'demo-user',
     title: 'Prescription approved',
-    body: 'Our pharmacist reviewed your upload for PG-91C7B4. Complete payment to continue.',
+    message: 'Our pharmacist reviewed your upload for PG-91C7B4. Complete payment to continue.',
     data: { kind: 'order', id: 'o2' },
     read_at: null,
     created_at: hoursAgo(18),
@@ -431,7 +431,7 @@ export const demoNotifications: AppNotification[] = [
     id: 'n3',
     user_id: 'demo-user',
     title: 'Back in stock',
-    body: 'Ventolin Inhaler 100mcg is available again.',
+    message: 'Ventolin Inhaler 100mcg is available again.',
     data: { kind: 'product', id: 'p9' },
     read_at: daysAgo(3),
     created_at: daysAgo(3),
@@ -448,5 +448,3 @@ export function demoQuote(subtotalKobo: number): DeliveryQuote {
     eta_minutes: 45,
   };
 }
-
-

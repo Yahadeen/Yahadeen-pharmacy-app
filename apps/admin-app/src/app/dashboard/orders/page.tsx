@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FormModal } from '@/components/form-modal';
 import { DetailsModal } from '@/components/details-modal';
+import { Eye, FileText, ImageIcon, Package, X } from 'lucide-react';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -11,6 +12,8 @@ export default function OrdersPage() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [prescriptionPreviewUrl, setPrescriptionPreviewUrl] = useState<string | null>(null);
   const [statusData, setStatusData] = useState({ status: '', cancellation_reason: '' });
   const [isMobile, setIsMobile] = useState(false);
 
@@ -56,7 +59,7 @@ export default function OrdersPage() {
     e.preventDefault();
     try {
       const response = await fetch(`/api/orders/${selectedOrder.id}/status`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(statusData),
       });
@@ -71,9 +74,28 @@ export default function OrdersPage() {
     }
   };
 
-  const openDetailsModal = (order: any) => {
-    setSelectedOrder(order);
+  const openDetailsModal = async (order: any) => {
     setDetailsModalOpen(true);
+    setDetailsLoading(true);
+    setSelectedOrder(order);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/orders/${order.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setSelectedOrder(await response.json());
+      } else {
+        console.error('Failed to fetch order details:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to fetch order details:', error);
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
   const openStatusModal = (order: any) => {
@@ -106,6 +128,10 @@ export default function OrdersPage() {
   const formatStatus = (status: string) => {
     return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   };
+
+  const orderItems = selectedOrder?.items || selectedOrder?.order_items || [];
+  const selectedAddress = selectedOrder?.address || selectedOrder?.addresses || selectedOrder?.address_snapshot;
+  const selectedCustomer = selectedOrder?.customer || selectedOrder?.users;
 
   if (loading) {
     return <div style={{ color: 'var(--text-muted)' }}>Loading orders...</div>;
@@ -359,72 +385,238 @@ export default function OrdersPage() {
         onClose={() => {
           setDetailsModalOpen(false);
           setSelectedOrder(null);
+          setPrescriptionPreviewUrl(null);
         }}
         title="Order Details"
-        size="lg"
+        size="xl"
       >
-        {selectedOrder && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Order Code
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>{selectedOrder.code}</div>
+        {detailsLoading ? (
+          <div style={{ color: 'var(--text-muted)', padding: 24 }}>Loading order details...</div>
+        ) : selectedOrder && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1.2fr 0.8fr',
+                gap: 16,
+              }}
+            >
+              <section style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>Order</div>
+                    <div style={{ fontSize: 20, color: 'var(--text)', fontWeight: 800 }}>{selectedOrder.code}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {new Date(selectedOrder.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 999,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background: `${getStatusColor(selectedOrder.status)}20`,
+                      color: getStatusColor(selectedOrder.status),
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {formatStatus(selectedOrder.status)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                  <Metric label="Subtotal" value={formatCurrency(selectedOrder.subtotal_kobo || 0)} />
+                  <Metric label="Delivery" value={formatCurrency(selectedOrder.delivery_fee_kobo || 0)} />
+                  <Metric label="Total" value={formatCurrency(selectedOrder.total_kobo || 0)} strong />
+                </div>
+
+                {!!selectedOrder.cancellation_reason && (
+                  <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: '#ef444420', color: '#ef4444', fontSize: 13, fontWeight: 600 }}>
+                    Cancellation reason: {selectedOrder.cancellation_reason}
+                  </div>
+                )}
+              </section>
+
+              <section style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 10 }}>Customer</div>
+                <div style={{ fontSize: 15, color: 'var(--text)', fontWeight: 700 }}>
+                  {selectedCustomer?.full_name || selectedAddress?.full_name || selectedOrder.customer_id || '-'}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+                  {selectedCustomer?.phone || selectedAddress?.phone || '-'}
+                </div>
+                <div style={{ height: 1, background: 'var(--border)', margin: '14px 0' }} />
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 6 }}>Delivery address</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
+                  {selectedAddress
+                    ? [selectedAddress.address_line1, selectedAddress.address_line2, selectedAddress.city, selectedAddress.state]
+                        .filter(Boolean)
+                        .join(', ')
+                    : selectedOrder.address_id || '-'}
+                </div>
+                {!!selectedOrder.notes && (
+                  <>
+                    <div style={{ height: 1, background: 'var(--border)', margin: '14px 0' }} />
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 6 }}>Customer note</div>
+                    <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>{selectedOrder.notes}</div>
+                  </>
+                )}
+              </section>
+            </div>
+
+            <section style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Package size={16} color="var(--text-muted)" />
+                <h3 style={{ fontSize: 16, margin: 0, color: 'var(--text)', fontWeight: 800 }}>
+                  Products ({orderItems.length})
+                </h3>
               </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Customer ID
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)' }}>{selectedOrder.customer_id || '-'}</div>
+              {orderItems.length ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {orderItems.map((item: any, index: number) => {
+                    const product = item.product || item.products || {};
+                    const imageUrl = item.image_url_snapshot || product.image_url;
+                    const name = product.name || item.name_snapshot || `Product ${item.product_id || index + 1}`;
+                    return (
+                      <div
+                        key={item.id || `${item.product_id}-${index}`}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '52px 1fr auto',
+                          gap: 12,
+                          alignItems: 'center',
+                          padding: 12,
+                          border: '1px solid var(--border)',
+                          borderRadius: 10,
+                          background: 'var(--surface-2)',
+                        }}
+                      >
+                        {imageUrl ? (
+                          <img src={imageUrl} alt={name} style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8 }} />
+                        ) : (
+                          <div style={{ width: 52, height: 52, borderRadius: 8, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Package size={18} color="var(--text-muted)" />
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 800 }}>{name}</div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 3 }}>
+                            {item.pack_size_snapshot || product.pack_size || 'Pack details unavailable'}
+                            {item.product_id ? ` · ${item.product_id}` : ''}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 3 }}>
+                            {formatCurrency(item.unit_price_kobo || 0)} each · Qty {item.quantity}
+                          </div>
+                        </div>
+                        <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 800, textAlign: 'right' }}>
+                          {formatCurrency(item.total_kobo || (item.unit_price_kobo || 0) * (item.quantity || 0))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>No products were returned for this order.</div>
+              )}
+            </section>
+
+            <section style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <FileText size={16} color="var(--text-muted)" />
+                <h3 style={{ fontSize: 16, margin: 0, color: 'var(--text)', fontWeight: 800 }}>Prescription</h3>
               </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Total Amount
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>{formatCurrency(selectedOrder.total_kobo)}</div>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Status
-                </label>
-                <span
+              {selectedOrder.prescription_url ? (
+                <button
+                  type="button"
+                  onClick={() => setPrescriptionPreviewUrl(selectedOrder.prescription_url)}
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: 999,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    background: `${getStatusColor(selectedOrder.status)}20`,
-                    color: getStatusColor(selectedOrder.status),
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: 12,
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
                   }}
                 >
-                  {formatStatus(selectedOrder.status)}
-                </span>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Created At
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)' }}>{new Date(selectedOrder.created_at).toLocaleString()}</div>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Delivery Address
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)' }}>{selectedOrder.address_id || '-'}</div>
-              </div>
-            </div>
-            {selectedOrder.notes && (
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  Notes
-                </label>
-                <div style={{ fontSize: 14, color: 'var(--text)' }}>{selectedOrder.notes}</div>
-              </div>
-            )}
+                  {/\.(png|jpe?g|webp|gif)$/i.test(selectedOrder.prescription_url) ? (
+                    <img src={selectedOrder.prescription_url} alt="Prescription" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 8 }} />
+                  ) : (
+                    <div style={{ width: 76, height: 76, borderRadius: 8, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ImageIcon size={24} color="var(--text-muted)" />
+                    </div>
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 800 }}>Uploaded prescription</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 3 }}>Click to view full screen</div>
+                  </div>
+                  <Eye size={18} color="var(--text-muted)" />
+                </button>
+              ) : (
+                <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>No prescription attached to this order.</div>
+              )}
+            </section>
           </div>
         )}
       </DetailsModal>
+
+      {prescriptionPreviewUrl && (
+        <div
+          onClick={() => setPrescriptionPreviewUrl(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1200,
+            background: 'rgba(0,0,0,0.86)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <button
+            type="button"
+            aria-label="Close prescription preview"
+            onClick={() => setPrescriptionPreviewUrl(null)}
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              width: 42,
+              height: 42,
+              borderRadius: 999,
+              border: '1px solid rgba(255,255,255,0.24)',
+              background: 'rgba(255,255,255,0.12)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <X size={22} />
+          </button>
+          {/\.(png|jpe?g|webp|gif)$/i.test(prescriptionPreviewUrl) ? (
+            <img
+              src={prescriptionPreviewUrl}
+              alt="Prescription full preview"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
+            />
+          ) : (
+            <iframe
+              src={prescriptionPreviewUrl}
+              title="Prescription full preview"
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: 'min(100%, 1000px)', height: '90vh', border: 'none', borderRadius: 8, background: '#fff' }}
+            />
+          )}
+        </div>
+      )}
 
       {/* Update Status Modal */}
       <FormModal
@@ -519,6 +711,19 @@ export default function OrdersPage() {
           </form>
         )}
       </FormModal>
+    </div>
+  );
+}
+
+function Metric({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div style={{ padding: 12, borderRadius: 10, background: 'var(--surface-2)' }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: strong ? 16 : 14, color: 'var(--text)', fontWeight: strong ? 900 : 700 }}>
+        {value}
+      </div>
     </div>
   );
 }

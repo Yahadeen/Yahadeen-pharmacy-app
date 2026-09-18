@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext } from '@/server/auth';
 import { supabaseAdmin } from '@/server/supabase';
+import { PushService } from '@/server/services/push.service';
 
 export async function GET(
   request: NextRequest,
@@ -13,6 +14,7 @@ export async function GET(
     }
     const { id } = await params;
 
+    // First fetch messages
     const { data: messages, error } = await supabaseAdmin
       .from('support_messages')
       .select('*')
@@ -24,7 +26,27 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    return NextResponse.json({ messages });
+    // Fetch sender information for each message
+    const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+    const { data: senders, error: sendersError } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, role')
+      .in('id', senderIds);
+
+    if (sendersError) {
+      console.error('Error fetching senders:', sendersError);
+    }
+
+    // Create a map of sender data
+    const senderMap = new Map(senders?.map(s => [s.id, s]) || []);
+
+    // Combine messages with sender information
+    const formattedMessages = messages?.map(msg => ({
+      ...msg,
+      sender: senderMap.get(msg.sender_id) || null,
+    })) || [];
+
+    return NextResponse.json({ messages: formattedMessages });
   } catch (error: any) {
     console.error('Support messages fetch error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
@@ -83,7 +105,7 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
     }
 
-    // Fetch the complete message
+    // Fetch the complete message with sender information
     const { data: completeMessage, error: fetchError } = await supabaseAdmin
       .from('support_messages')
       .select('*')
@@ -95,7 +117,67 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: completeMessage }, { status: 201 });
+    // Fetch sender information
+    const { data: sender, error: senderError } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, role')
+      .eq('id', auth.userId)
+      .single();
+
+    if (senderError) {
+      console.error('Error fetching sender:', senderError);
+    }
+
+    // Format the message with sender information
+    const formattedMessage = {
+      ...completeMessage,
+      sender: sender || null,
+    };
+
+    // Send push notifications for new support message
+    try {
+      // Get ticket details to know who to notify
+      const { data: ticket } = await supabaseAdmin
+        .from('support_tickets')
+        .select('customer_id, attendant_id, ticket_number')
+        .eq('id', id)
+        .single();
+
+      if (ticket) {
+        // If customer sent message, notify attendant/admin
+        if (senderRole === 'customer') {
+          const notifyIds = [ticket.attendant_id].filter(Boolean);
+          if (notifyIds.length > 0) {
+            await PushService.sendToUsers(notifyIds, {
+              title: 'New Support Message',
+              body: `New message in ticket #${ticket.ticket_number}`,
+              data: {
+                type: 'support_message',
+                ticket_id: id,
+                screen: 'support/[id]',
+              },
+            });
+          }
+        }
+        // If attendant/admin sent message, notify customer
+        else {
+          await PushService.sendToUser(ticket.customer_id, {
+            title: 'Support Reply',
+            body: `New reply in ticket #${ticket.ticket_number}`,
+            data: {
+              type: 'support_message',
+              ticket_id: id,
+              screen: 'support/[id]',
+            },
+          });
+        }
+      }
+    } catch (pushError) {
+      // Don't fail the message sending if push fails
+      console.error('Failed to send push notification:', pushError);
+    }
+
+    return NextResponse.json({ message: formattedMessage }, { status: 201 });
   } catch (error: any) {
     console.error('Support message creation error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

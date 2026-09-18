@@ -5,11 +5,11 @@ import { ProductService } from './product.service';
 export interface StockMovement {
   id: string;
   product_id: string;
+  quantity: number;
   previous_quantity: number;
   new_quantity: number;
-  change: number;
   reason: string;
-  performed_by?: string;
+  adjusted_by?: string;
   created_at: string;
 }
 
@@ -17,51 +17,51 @@ export interface UpdateStockInput {
   product_id: string;
   quantity: number;
   reason: string;
+  note?: string;
 }
 
 export class InventoryService {
   /**
    * Update stock quantity for a product
+   * Stock is stored directly on the products table, not in a separate inventory table
    */
   static async updateStock(input: UpdateStockInput, auth: AuthContext): Promise<void> {
-    // Get current stock
-    const { data: currentInventory, error: fetchError } = await supabaseAdmin
-      .from('inventory')
-      .select('quantity')
-      .eq('product_id', input.product_id)
+    // Get current stock from products table
+    const { data: currentProduct, error: fetchError } = await supabaseAdmin
+      .from('products')
+      .select('stock_quantity, low_stock_threshold')
+      .eq('id', input.product_id)
       .single();
 
     if (fetchError) {
-      throw new Error(`Failed to fetch current inventory: ${fetchError.message}`);
+      throw new Error(`Failed to fetch current product: ${fetchError.message}`);
     }
 
-    const previousQuantity = currentInventory.quantity;
+    const previousQuantity = currentProduct.stock_quantity;
     const change = input.quantity - previousQuantity;
 
-    // Update inventory
+    // Update stock directly on products table
     const { error: updateError } = await supabaseAdmin
-      .from('inventory')
+      .from('products')
       .update({
-        quantity: input.quantity,
-        updated_by: auth.userId,
+        stock_quantity: input.quantity,
         updated_at: new Date().toISOString(),
       })
-      .eq('product_id', input.product_id);
+      .eq('id', input.product_id);
 
     if (updateError) {
-      throw new Error(`Failed to update inventory: ${updateError.message}`);
+      throw new Error(`Failed to update product stock: ${updateError.message}`);
     }
 
-    // Record stock movement
+    // Record stock movement in inventory_adjustments table
     const { error: movementError } = await supabaseAdmin
-      .from('stock_movements')
+      .from('inventory_adjustments')
       .insert({
         product_id: input.product_id,
+        quantity: input.quantity,
         previous_quantity: previousQuantity,
-        new_quantity: input.quantity,
-        change,
         reason: input.reason,
-        performed_by: auth.userId,
+        adjusted_by: auth.userId,
       });
 
     if (movementError) {
@@ -80,7 +80,7 @@ export class InventoryService {
    */
   static async getStockMovements(productId: string, limit = 50): Promise<StockMovement[]> {
     const { data, error } = await supabaseAdmin
-      .from('stock_movements')
+      .from('inventory_adjustments')
       .select('*')
       .eq('product_id', productId)
       .order('created_at', { ascending: false })
@@ -90,35 +90,34 @@ export class InventoryService {
       throw new Error(`Failed to fetch stock movements: ${error.message}`);
     }
 
-    return data;
+    return data || [];
   }
 
   /**
    * Get all inventory items
+   * Returns products with their stock information
    */
   static async getAllInventory(filters?: {
     low_stock?: boolean;
     out_of_stock?: boolean;
   }) {
     let query = supabaseAdmin
-      .from('inventory')
+      .from('products')
       .select(`
-        *,
-        products (
-          id,
-          name,
-          generic_name,
-          brand,
-          category_id,
-          price_kobo,
-          is_active
-        )
+        id,
+        name,
+        generic_name,
+        brand,
+        category_id,
+        price_kobo,
+        is_active,
+        stock_quantity,
+        low_stock_threshold,
+        image_url,
+        updated_at
       `)
-      .order('updated_at', { ascending: false });
-
-    if (filters?.low_stock) {
-      // This will be filtered after fetching
-    }
+      .eq('is_active', true)
+      .order('stock_quantity', { ascending: true }); // Sort by stock ascending (lowest first)
 
     const { data, error } = await query;
 
@@ -126,16 +125,16 @@ export class InventoryService {
       throw new Error(`Failed to fetch inventory: ${error.message}`);
     }
 
-    let result = data;
+    let result = data || [];
 
     if (filters?.low_stock) {
       result = result.filter((item: any) => 
-        item.quantity <= item.low_stock_threshold && item.quantity > 0
+        item.stock_quantity <= item.low_stock_threshold && item.stock_quantity > 0
       );
     }
 
     if (filters?.out_of_stock) {
-      result = result.filter((item: any) => item.quantity === 0);
+      result = result.filter((item: any) => item.stock_quantity === 0);
     }
 
     return result;
@@ -159,7 +158,7 @@ export class InventoryService {
     const notifications = watchers.map((watcher: any) => ({
       user_id: watcher.user_id,
       title: 'Product Back in Stock',
-      body: 'A product you were watching is now available',
+      message: 'A product you were watching is now available',
       data: { product_id: productId },
     }));
 
