@@ -3,6 +3,9 @@
     "name": "yahadeen Pharm Go Staff",
     "slug": "yahadeen-attendant",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yahadeenpharmgostaff",
@@ -31,6 +34,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-android-colors",
       [
         "expo-splash-screen",
         {
@@ -61,6 +65,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2ec7ec57-ee8f-47ff-97bc-5419eead85c0",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     },
     "extra": {
       "eas": {

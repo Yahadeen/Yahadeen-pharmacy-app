@@ -101,4 +101,8 @@ yarn.lock
 *.p12
 *.pfx
 secrets/
+keys/
+**/keys/
+*firebase-adminsdk*.json
+google-service-account*.json
 *.secrets

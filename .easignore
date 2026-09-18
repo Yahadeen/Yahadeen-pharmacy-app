@@ -86,4 +86,8 @@ database/migrations/
 *.crt
 *.pfx
 secrets/
+keys/
+**/keys/
+*firebase-adminsdk*.json
+google-service-account*.json
 *.secrets

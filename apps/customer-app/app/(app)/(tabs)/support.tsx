@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAsync } from '@/src/hooks/useAsync';
 import { data } from '@/src/lib/data';
 import { Loading, EmptyState } from '@/src/components';
@@ -75,7 +76,7 @@ export default function SupportTabScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.background }]}>
           <Text style={[TYPE.title, { color: colors.text }]}>Support</Text>
         </View>
@@ -85,12 +86,12 @@ export default function SupportTabScreen() {
             Loading your tickets…
           </Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.background }]}>
         <Text style={[TYPE.title, { color: colors.text }]}>Support</Text>
         <Text style={[TYPE.label, styles.headerSubtitle, { color: colors.mutedText }]}>
@@ -129,7 +130,7 @@ export default function SupportTabScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   // Header styles
   header: {
     paddingHorizontal: SPACE.xl,
-    paddingTop: SPACE.md,
+    paddingTop: SPACE.lg,
     paddingBottom: SPACE.lg,
     borderBottomWidth: 1,
     borderBottomColor: 'transparent',

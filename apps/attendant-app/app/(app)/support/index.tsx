@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useToast } from '@/src/state/ToastProvider';
 import { supabase } from '@/src/lib/supabase';
-import { SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_PRIORITY_LABELS, SUPPORT_TICKET_STATUS_COLORS, SUPPORT_TICKET_PRIORITY_COLORS, type SupportTicket } from '@pharmago/shared';
+import { SPACE, SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_PRIORITY_LABELS, SUPPORT_TICKET_STATUS_COLORS, SUPPORT_TICKET_PRIORITY_COLORS, type SupportTicket } from '@pharmago/shared';
 import { useTheme } from '@/src/theme';
 import { Screen, ScreenHeader, EmptyState } from '@/src/components';
 
@@ -178,7 +178,7 @@ export default function SupportScreen() {
 }
 
 const styles = StyleSheet.create({
-  gutter: { paddingHorizontal: 20, paddingTop: 8 },
+  gutter: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.lg },
   scrollContent: { padding: 20, paddingTop: 0 },
   content: {
     flex: 1,

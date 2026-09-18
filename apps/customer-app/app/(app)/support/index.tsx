@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACE.xl,
-    paddingTop: SPACE.md,
+    paddingTop: SPACE.lg,
     paddingBottom: SPACE.lg,
     borderBottomWidth: 1,
     borderBottomColor: 'transparent',

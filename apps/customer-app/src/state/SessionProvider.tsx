@@ -93,6 +93,27 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const ConstantsModule = await import('expo-constants');
       const expoConstants = ConstantsModule.default as ExpoConstantsWithProjectId;
 
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('orders', {
+          name: 'Order updates',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#0036B6',
+        });
+      }
+
+      const permission = await Notifications.getPermissionsAsync();
+      let finalStatus = permission.status;
+      if (finalStatus !== 'granted') {
+        const requested = await Notifications.requestPermissionsAsync();
+        finalStatus = requested.status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Push notification permission not granted');
+        return;
+      }
+
       // Get projectId from Constants
       const projectId =
         expoConstants.expoConfig?.extra?.eas?.projectId ??

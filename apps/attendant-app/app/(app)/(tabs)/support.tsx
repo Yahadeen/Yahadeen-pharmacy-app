@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RADIUS, SPACE, TYPE, SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_PRIORITY_LABELS, SUPPORT_TICKET_STATUS_COLORS, SUPPORT_TICKET_PRIORITY_COLORS, type SupportTicket } from '@pharmago/shared';
 import { useAsync } from '@/src/hooks/useAsync';
 import { data } from '@/src/lib/data';
@@ -52,7 +53,7 @@ export default function SupportTabScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.gutter}>
         <ScreenHeader
           title="Support"
@@ -77,7 +78,7 @@ export default function SupportTabScreen() {
           ))}
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   },
   gutter: {
     paddingHorizontal: SPACE.xl,
-    paddingTop: SPACE.md,
+    paddingTop: SPACE.lg,
   },
   list: {
     paddingHorizontal: SPACE.xl,

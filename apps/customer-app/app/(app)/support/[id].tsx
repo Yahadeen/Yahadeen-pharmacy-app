@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { File } from 'expo-file-system';
 import { useToast } from '@/src/state/ToastProvider';
 import { supabase } from '@/src/lib/supabase';
-import { SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_STATUS_COLORS, SENDER_ROLE_LABELS, type SupportTicket, type SupportMessage } from '@pharmago/shared';
+import { SPACE, SUPPORT_TICKET_STATUS_LABELS, SUPPORT_TICKET_STATUS_COLORS, SENDER_ROLE_LABELS, type SupportTicket, type SupportMessage } from '@pharmago/shared';
 import { useTheme } from '@/src/theme';
 import { Screen, ScreenHeader } from '@/src/components';
 
@@ -644,7 +644,7 @@ export default function SupportChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  gutter: { paddingHorizontal: 10, paddingTop: 8 },
+  gutter: { paddingHorizontal: SPACE.xl, paddingTop: SPACE.lg },
   content: {
     flex: 1,
     justifyContent: 'center',

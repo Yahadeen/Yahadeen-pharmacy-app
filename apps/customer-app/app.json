@@ -3,6 +3,9 @@
     "name": "yahadeen pharm go",
     "slug": "yahadeen-customer",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yahadeen",
@@ -46,6 +49,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-android-colors",
       [
         "expo-splash-screen",
         {
@@ -83,6 +87,12 @@
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "updates": {
+      "url": "https://u.expo.dev/32382f78-5b52-4447-8ccf-a8b41a13aca0",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     },
     "extra": {
       "eas": {
